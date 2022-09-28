@@ -7,8 +7,8 @@
 
 #include <opencv2/core/matx.hpp>
 #include <opencv2/core/types.hpp>
-#include <vector>
 #include <iostream>
+#include <tuple>
 // The header files for performing input and output.
 
 using namespace cv;
@@ -17,42 +17,52 @@ using namespace cv;
 using namespace std;
 // For input output operations.
 
-
 // Function for Face Detection
 void detectAndDraw(Mat &img, CascadeClassifier &cascade, double scale);
 string cascadeName, nestedCascadeName;
 
-
 void blurImage(Mat matImg, Rect face)
 {
-    std::vector<Point2d, Vec3b> distorced_face;
+    vector<tuple<Point2d, Vec3b>> distorced_face;
 
-    int max_x = face.x + face.width;
-    int max_y = face.y + face.height;
-    for(int x = face.x; x < max_x; x++){
-        for (int y=face.y; y < max_y; y++){
-            int new_b = 0;
-            int new_g = 0;
-            int new_r = 0;
-            for(int xf= x - 10; xf <= x+10; x++){
-                for(int yf= y - 10; yf <= y+10;y++){
-                    cv::Vec3b pixel = matImg.at<Vec3b>(xf, yf);
-                    new_b += pixel.val[0];
-                    new_g += pixel.val[1];
-                    new_r += pixel.val[2];
+    int max_x = face.x + face.width - 1;
+    int max_y = face.y + face.height - 1;
+    for (int x = face.x; x < max_x; x++)
+    {
+        //cout << x << endl;
+        for (int y = face.y; y < max_y; y++)
+        {
+            long int new_b = 0;
+            long int new_g = 0;
+            long int new_r = 0;
 
+            int limitx = x + 3;
+            int limity = y + 3;
+            for (int xf = x; xf <= limitx; xf++)
+            {
+                for (int yf = y; yf <= limity; yf++)
+                {
+                    //cout << xf << " " << yf << endl;
+
+                    if ((xf > 0 && yf > 0) && (xf < matImg.cols - 2 && yf < matImg.rows - 2))
+                    {
+                        Vec3b pixel = matImg.at<Vec3b>(xf, yf);
+                        new_b += pixel.val[0];
+                        new_g += pixel.val[1];
+                        new_r += pixel.val[2];
+                    }
                 }
             }
-            
 
-            Vec3b new_pixel = Vec3b(new_b/ 10 * 10, new_g/ 10 * 10, new_r/ 10 * 10);
+            Vec3b new_pixel = Vec3b(new_b / 3 * 3, new_g / 3 * 3, new_r / 3 * 3);
             distorced_face.push_back(make_tuple(Point2d(x, y), new_pixel));
         }
     }
 
-
-    for(<Point2d, Vec3b> nPixel : distorced_face){
-        matImg.at<Vec3b>get<0>(nPixel) = get<1>(nPixel);
+    for (tuple<Point2d, Vec3b> nPixel : distorced_face)
+    {
+        Point2d coordinate = get<0>(nPixel);
+        matImg.at<Vec3b>(coordinate.x, coordinate.y) = get<1>(nPixel);
     }
 }
 
@@ -92,6 +102,7 @@ int main()
     while (i < frame_count)
     {
         cap.set(CAP_PROP_POS_FRAMES, i);
+        cout << i << endl;
         Mat frame;
         // Mat object is a basic image container. frame is an object of Mat.
         if (!cap.read(frame)) // if not success, break loop
