@@ -36,7 +36,7 @@ void blurImage(Mat matImg, Rect face)
             int new_r = 0;
             for(int xf= x - 10; xf <= x+10; x++){
                 for(int yf= y - 10; yf <= y+10;y++){
-                    Vec3b pixel = matImg.at<Vec3b>(xf, yf);
+                    cv::Vec3b pixel = matImg.at<Vec3b>(xf, yf);
                     new_b += pixel.val[0];
                     new_g += pixel.val[1];
                     new_r += pixel.val[2];
@@ -46,7 +46,7 @@ void blurImage(Mat matImg, Rect face)
             
 
             Vec3b new_pixel = Vec3b(new_b/ 10 * 10, new_g/ 10 * 10, new_r/ 10 * 10);
-            distorced_face.push_back(make_tuple(Point2d(x, y), new_pixel));*/
+            distorced_face.push_back(make_tuple(Point2d(x, y), new_pixel));
         }
     }
 
