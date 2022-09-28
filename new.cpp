@@ -1,7 +1,13 @@
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 #include "opencv2/highgui/highgui.hpp"
 // highgui - an interface to video and image capturing.
 #include <opencv2/imgproc/imgproc.hpp> // For dealing with images
 #include <opencv2/objdetect/objdetect.hpp>
+
+#include <opencv2/core/matx.hpp>
+#include <opencv2/core/types.hpp>
+#include <vector>
 #include <iostream>
 // The header files for performing input and output.
 
@@ -11,82 +17,43 @@ using namespace cv;
 using namespace std;
 // For input output operations.
 
+
 // Function for Face Detection
 void detectAndDraw(Mat &img, CascadeClassifier &cascade, double scale);
 string cascadeName, nestedCascadeName;
 
-int accessPixel(unsigned char *arr, int col, int row, int k, int width, int height)
-{
-    int sum = 0;
-    int sumKernel = 0;
 
-    for (int j = -1; j <= 1; j++)
-    {
-        for (int i = -1; i <= 1; i++)
-        {
-            if ((row + j) >= 0 && (row + j) < height && (col + i) >= 0 && (col + i) < width)
-            {
-                int color = arr[(row + j) * 3 * width + (col + i) * 3 + k];
-                sum += color;
+void blurImage(Mat matImg, Rect face)
+{
+    std::vector<Point2d, Vec3b> distorced_face;
+
+    int max_x = face.x + face.width;
+    int max_y = face.y + face.height;
+    for(int x = face.x; x < max_x; x++){
+        for (int y=face.y; y < max_y; y++){
+            int new_b = 0;
+            int new_g = 0;
+            int new_r = 0;
+            for(int xf= x - 10; xf <= x+10; x++){
+                for(int yf= y - 10; yf <= y+10;y++){
+                    Vec3b pixel = matImg.at<Vec3b>(xf, yf);
+                    new_b += pixel.val[0];
+                    new_g += pixel.val[1];
+                    new_r += pixel.val[2];
+
+                }
             }
+            
+
+            Vec3b new_pixel = Vec3b(new_b/ 10 * 10, new_g/ 10 * 10, new_r/ 10 * 10);
+            distorced_face.push_back(make_tuple(Point2d(x, y), new_pixel));*/
         }
     }
 
-    return sum / (15 * 15);
-}
 
-int kernel[3][3] = {1, 2, 1,
-                    2, 4, 2,
-                    1, 2, 1};
-
-void guassian_blur2D(unsigned char *arr, unsigned char *result, int width, int height)
-{
-    for (int row = 0; row < height; row++)
-    {
-        for (int col = 0; col < width; col++)
-        {
-            for (int k = 0; k < 3; k++)
-            {
-                result[15 * row * width + 3 * col + k] = accessPixel(arr, col, row, k, width, height);
-            }
-        }
+    for(<Point2d, Vec3b> nPixel : distorced_face){
+        matImg.at<Vec3b>get<0>(nPixel) = get<1>(nPixel);
     }
-}
-
-void blurImage(Mat matImg)
-{
-    uint8_t *pixelPtr = (uint8_t *)matImg.data;
-    int cn = matImg.channels();
-    Scalar_<uint8_t> bgrPixel;
-    Scalar_<uint8_t> bgrPixelResult;
-
-    /*Crear las tres matrices para cada canal de color*/
-    unsigned char *matR, *matG, *matB;
-    /*Crear las tres matrices resultanres*/
-    unsigned char *rMatR, *rMatG, *rMatB;
-
-    for (int i = 0; i < matImg.rows; i++)
-    {
-        for (int j = 0; j < matImg.cols; j++)
-        {
-            bgrPixel.val[0] = pixelPtr[i * matImg.cols * cn + j * cn + 0]; // B
-            bgrPixel.val[1] = pixelPtr[i * matImg.cols * cn + j * cn + 1]; // G
-            bgrPixel.val[2] = pixelPtr[i * matImg.cols * cn + j * cn + 2]; // R
-
-            *(matB + ((i * matImg.cols) + j)) = bgrPixel.val[0];
-            *(matG + ((i * matImg.cols) + j)) = bgrPixel.val[1];
-            *(matR + ((i * matImg.cols) + j)) = bgrPixel.val[2];
-
-
-            // do something with BGR values...
-        }
-    }
-
-    guassian_blur2D(matR, rMatR, matImg.cols, matImg.rows);
-    guassian_blur2D(matG, rMatG, matImg.cols, matImg.rows);
-    guassian_blur2D(matB, rMatB, matImg.cols, matImg.rows);
-
-    cout << bgrPixel.val[0] << endl;
 }
 
 int main()
@@ -170,7 +137,7 @@ void detectAndDraw(Mat &img, CascadeClassifier &cascade,
     {
         Rect r = faces[i];
 
-        blurImage(img(r));
+        blurImage(img, r);
     }
 
     // Show Processed Image with detected faces
