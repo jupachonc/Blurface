@@ -143,7 +143,6 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
 
 void blurImage(Mat frame, Rect face)
 {
-    vector<tuple<Point2d, Vec3b>> distorced_face;
 
     int max_x = face.x + face.width;
     int max_y = face.y + face.height;
