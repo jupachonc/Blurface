@@ -1,0 +1,12 @@
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Execution time: 352.229312 s
+Source video: ./VideoIn/video_2.mp4
+Output video: ./VideoOut/video_2_out.mp4
+Execution time: 263.404436 s 
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Execution time: 447.070111 s 
+Source video: ./VideoIn/video_4.mp4
+Output video: ./VideoOut/video_4_out.mp4
+Execution time: 177.426087 s 
