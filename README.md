@@ -6,10 +6,6 @@ Para ejecutar el programa con las pruebas correr
 
 > sh ./script.sh
 
-Para compilar con CMake
-
-> make
-
-O usar
+Para compilar
 
 > g++ videoFaceBlur.cpp -o videoFaceBlur `pkg-config --cflags --libs opencv4`
