@@ -1,11 +1,10 @@
 #!/bin/sh
-#!/bin/sh
 echo "------------------------------------------------"
 echo "Computación paralela y distribuida - práctica 1"
 echo "------------------------------------------------"
 echo "Compilando el programa ..."
 #Compilar el programa
-make
+g++ videoFaceBlur.cpp -o videoFaceBlur `pkg-config --cflags --libs opencv4`
 echo "Compilación terminada, realizando pruebas ..."
 echo "------------------------ Procesando videos------------"
 ./videoFaceBlur ./VideoIn/video_1.mp4 ./VideoOut/video_1_out.mp4 >> results.txt
