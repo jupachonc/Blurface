@@ -10,3 +10,19 @@ Execution time: 447.070111 s
 Source video: ./VideoIn/video_4.mp4
 Output video: ./VideoOut/video_4_out.mp4
 Execution time: 177.426087 s 
+
+-----------------------------------------
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Threads: 8
+Execution time: 126.406836 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Threads: 1
+Execution time: 227.043070 s 
+
+-----------------------------------------

@@ -1,4 +1,4 @@
-CC =    g++
+CC =    g++ -fopenmp
 PROJECT =   videoFaceBlur
 SRC =   videoFaceBlur.cpp
 LIBS =  `pkg-config --cflags --libs opencv4`

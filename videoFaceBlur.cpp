@@ -4,12 +4,14 @@
 #include <opencv2/imgproc/imgproc.hpp> // For dealing with images
 #include <opencv2/objdetect/objdetect.hpp>
 #include <iostream>
+#include "omp.h"
 #include <sys/time.h>
 
 #define MATRIX_SIZE_1D 20
 #define FULL_MATRIX_SIZE MATRIX_SIZE_1D *MATRIX_SIZE_1D
-#define NUM_THREADS 1 // Number of threads to use
-#define R_ARGS 2
+#define R_ARGS 3
+
+int numThreads = 1; // Number of threads to use
 
 // Namespace for OpenCV
 using namespace cv;
@@ -20,7 +22,7 @@ using namespace std;
 void detectAndBlur(Mat &img, CascadeClassifier &cascade);
 
 // Function for blur image
-void blurImage(Mat frame, Rect face);
+void blurImage(Mat frame, Rect face, int threadId);
 
 int main(int argc, char *argv[])
 {
@@ -40,12 +42,20 @@ int main(int argc, char *argv[])
     // Read args
     loadPath = *(argv + 1);
     savePath = *(argv + 2);
+    numThreads = atoi(*(argv + 3));
+
+    // Verify number of threads
+    if (numThreads < 0)
+    {
+        printf("Invalid threads number \n");
+        exit(EXIT_FAILURE);
+    }
 
     // Start time
     gettimeofday(&tval_before, NULL);
 
     // Force OpenCV use number of threads
-    setNumThreads(NUM_THREADS);
+    setNumThreads(numThreads);
 
     // PreDefined trained XML classifiers with facial features
     CascadeClassifier cascade;
@@ -68,8 +78,8 @@ int main(int argc, char *argv[])
     // cap is the object of class video capture that tries to capture Bumpy.mp4
     if (!cap.isOpened()) // isOpened() returns true if capturing has been initialized.
     {
-        cout << "Cannot open the video file. \n";
-        exit(1);
+        perror("Cannot open the video file. \n");
+        exit(EXIT_FAILURE);
     }
 
     // double fps = cap.get(CV_CAP_PROP_FPS); //get the frames per seconds of the video
@@ -87,8 +97,8 @@ int main(int argc, char *argv[])
         if (!cap.read(frame)) // if not success, break loop
         // read() decodes and captures the next frame.
         {
-            cout << "\n Cannot read the video file. \n";
-            exit(1);
+            perror("\n Cannot read the video file. \n");
+            exit(EXIT_FAILURE);
         }
 
         // Process frame to blur face
@@ -109,11 +119,14 @@ int main(int argc, char *argv[])
     // Calculate time
     timersub(&tval_after, &tval_before, &tval_result);
 
+    printf("\n-----------------------------------------\n");
     printf("Source video: %s\n", loadPath);
     printf("Output video: %s\n", savePath);
+    printf("Threads: %d\n", numThreads);
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+    printf("\n-----------------------------------------\n");
 
-    return 0;
+        return 0;
 }
 
 void detectAndBlur(Mat &img, CascadeClassifier &cascade)
@@ -137,16 +150,25 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
     {
         Rect r = faces[i];
 
-        blurImage(img, r);
+        #pragma omp parallel num_threads(numThreads)
+        {
+            int ID = omp_get_thread_num();
+            blurImage(img, r, ID);
+        }
     }
 }
 
-void blurImage(Mat frame, Rect face)
+void blurImage(Mat frame, Rect face, int threadId)
 {
+    int partition = (int)face.width / numThreads;
+    int start_x = (int)threadId * partition;
 
-    int max_x = face.x + face.width;
+    int end_x = ((threadId + 1) * partition) - 1;
+
+    int max_x = face.x + (end_x < face.width ? end_x : face.width);
     int max_y = face.y + face.height;
-    for (int x = face.x; x <= max_x; x += MATRIX_SIZE_1D)
+
+    for (int x = start_x; x <= max_x; x += MATRIX_SIZE_1D)
     {
         for (int y = face.y; y <= max_y; y += MATRIX_SIZE_1D)
         {
