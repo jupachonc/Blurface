@@ -7,7 +7,7 @@
 #include "omp.h"
 #include <sys/time.h>
 
-#define MATRIX_SIZE_1D 20
+#define MATRIX_SIZE_1D 10
 #define FULL_MATRIX_SIZE MATRIX_SIZE_1D *MATRIX_SIZE_1D
 #define R_ARGS 3
 
@@ -168,7 +168,7 @@ void blurImage(Mat frame, Rect face, int threadId)
     int max_x = face.x + (end_x < face.width ? end_x : face.width);
     int max_y = face.y + face.height;
 
-    for (int x = start_x; x <= max_x; x += MATRIX_SIZE_1D)
+    for (int x = face.x + start_x; x <= max_x; x += MATRIX_SIZE_1D)
     {
         for (int y = face.y; y <= max_y; y += MATRIX_SIZE_1D)
         {
