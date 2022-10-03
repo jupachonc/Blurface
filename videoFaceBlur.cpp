@@ -5,11 +5,14 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <iostream>
 #include "omp.h"
+#include <cmath>
 #include <sys/time.h>
 
-#define MATRIX_SIZE_1D 10
-#define FULL_MATRIX_SIZE MATRIX_SIZE_1D *MATRIX_SIZE_1D
 #define R_ARGS 3
+
+// Matrix for effect
+int matrixSize1D  = 15;
+int fullMatrixSize = 15 * 15;
 
 int numThreads = 1; // Number of threads to use
 
@@ -69,6 +72,10 @@ int main(int argc, char *argv[])
     int fps = cap.get(CAP_PROP_FPS);
     int width = cap.get(CAP_PROP_FRAME_WIDTH);
     int height = cap.get(CAP_PROP_FRAME_HEIGHT);
+
+    // Determine matrix size
+    int matrixSize1D = ceil(height * 0.015);
+    int fullMatrixSize = matrixSize1D * matrixSize1D;
 
     // Create video writer
     VideoWriter video(savePath, VideoWriter::fourcc('m', 'p', '4', 'v'), fps, Size(width, height));
@@ -168,12 +175,12 @@ void blurImage(Mat frame, Rect face, int threadId)
     int max_x = face.x + (end_x < face.width ? end_x : face.width);
     int max_y = face.y + face.height;
 
-    for (int x = face.x + start_x; x <= max_x; x += MATRIX_SIZE_1D)
+    for (int x = face.x + start_x; x <= max_x; x += matrixSize1D)
     {
-        for (int y = face.y; y <= max_y; y += MATRIX_SIZE_1D)
+        for (int y = face.y; y <= max_y; y += matrixSize1D)
         {
             // Allocate memmory for store the positions of the pixels in the group
-            Point2d *pixels_position = (Point2d *)malloc(sizeof(Point2d) * FULL_MATRIX_SIZE);
+            Point2d *pixels_position = (Point2d *)malloc(sizeof(Point2d) * fullMatrixSize);
             if (pixels_position == NULL)
             {
                 perror("Error allocating memory for pixels positions");
@@ -181,14 +188,14 @@ void blurImage(Mat frame, Rect face, int threadId)
             }
 
             // Get the positions of all pixels in the group
-            for (int i = 0; i < FULL_MATRIX_SIZE; i++)
+            for (int i = 0; i < fullMatrixSize; i++)
             {
-                *(pixels_position + i) = Point(x + (i % MATRIX_SIZE_1D), y + (int)(i / MATRIX_SIZE_1D));
+                *(pixels_position + i) = Point(x + (i % matrixSize1D), y + (int)(i / matrixSize1D));
             }
 
             // Calculate the average value of the grouped pixels
             int new_pixels[3] = {0, 0, 0};
-            for (int i = 0; i < FULL_MATRIX_SIZE; i++)
+            for (int i = 0; i < fullMatrixSize; i++)
             {
                 Point2d *pixel_position = pixels_position + i;
                 Vec3b pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
@@ -197,12 +204,12 @@ void blurImage(Mat frame, Rect face, int threadId)
                 new_pixels[1] += pixel[1];
                 new_pixels[2] += pixel[2];
             }
-            new_pixels[0] /= FULL_MATRIX_SIZE;
-            new_pixels[1] /= FULL_MATRIX_SIZE;
-            new_pixels[2] /= FULL_MATRIX_SIZE;
+            new_pixels[0] /= fullMatrixSize;
+            new_pixels[1] /= fullMatrixSize;
+            new_pixels[2] /= fullMatrixSize;
 
             // Replace the value of all pixels in the group for the previous one calculated
-            for (int i = 0; i < FULL_MATRIX_SIZE; i++)
+            for (int i = 0; i < fullMatrixSize; i++)
             {
                 Point2d *pixel_position = pixels_position + i;
                 Vec3b &pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);

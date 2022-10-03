@@ -1,28 +1,168 @@
-Source video: ./VideoIn/video_1.mp4
-Output video: ./VideoOut/video_1_out.mp4
-Execution time: 352.229312 s
-Source video: ./VideoIn/video_2.mp4
-Output video: ./VideoOut/video_2_out.mp4
-Execution time: 263.404436 s 
-Source video: ./VideoIn/video_3.mp4
-Output video: ./VideoOut/video_3_out.mp4
-Execution time: 447.070111 s 
-Source video: ./VideoIn/video_4.mp4
-Output video: ./VideoOut/video_4_out.mp4
-Execution time: 177.426087 s 
-
------------------------------------------
-Source video: ./VideoIn/video_1.mp4
-Output video: ./VideoOut/video_1_out.mp4
-Threads: 8
-Execution time: 126.406836 s 
-
------------------------------------------
 
 -----------------------------------------
 Source video: ./VideoIn/video_1.mp4
 Output video: ./VideoOut/video_1_out.mp4
 Threads: 1
-Execution time: 227.043070 s 
+Execution time: 242.104668 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Threads: 2
+Execution time: 172.241830 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Threads: 4
+Execution time: 133.096770 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Threads: 8
+Execution time: 120.918643 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_1.mp4
+Output video: ./VideoOut/video_1_out.mp4
+Threads: 16
+Execution time: 103.251581 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_2.mp4
+Output video: ./VideoOut/video_2_out.mp4
+Threads: 1
+Execution time: 122.238447 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_2.mp4
+Output video: ./VideoOut/video_2_out.mp4
+Threads: 2
+Execution time: 94.164936 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_2.mp4
+Output video: ./VideoOut/video_2_out.mp4
+Threads: 4
+Execution time: 77.974217 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_2.mp4
+Output video: ./VideoOut/video_2_out.mp4
+Threads: 8
+Execution time: 74.112679 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_2.mp4
+Output video: ./VideoOut/video_2_out.mp4
+Threads: 16
+Execution time: 68.071695 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Threads: 1
+Execution time: 269.263606 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Threads: 2
+Execution time: 179.603660 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Threads: 4
+Execution time: 130.734933 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Threads: 8
+Execution time: 107.703876 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Threads: 16
+Execution time: 96.520575 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_4.mp4
+Output video: ./VideoOut/video_4_out.mp4
+Threads: 1
+Execution time: 128.506269 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_4.mp4
+Output video: ./VideoOut/video_4_out.mp4
+Threads: 2
+Execution time: 90.657233 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_4.mp4
+Output video: ./VideoOut/video_4_out.mp4
+Threads: 4
+Execution time: 71.986515 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_4.mp4
+Output video: ./VideoOut/video_4_out.mp4
+Threads: 8
+Execution time: 62.974259 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_4.mp4
+Output video: ./VideoOut/video_4_out.mp4
+Threads: 16
+Execution time: 58.715744 s 
+
+-----------------------------------------
+
+-----------------------------------------
+Source video: ./VideoIn/video_3.mp4
+Output video: ./VideoOut/video_3_out.mp4
+Threads: 16
+Execution time: 93.001151 s 
 
 -----------------------------------------
