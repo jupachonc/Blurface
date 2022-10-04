@@ -158,11 +158,3 @@ Threads: 16
 Execution time: 58.715744 s 
 
 -----------------------------------------
-
------------------------------------------
-Source video: ./VideoIn/video_3.mp4
-Output video: ./VideoOut/video_3_out.mp4
-Threads: 16
-Execution time: 93.001151 s 
-
------------------------------------------
