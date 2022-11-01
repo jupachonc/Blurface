@@ -21,12 +21,14 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(Mat frame, Rect face)
+__global__ void blurImage(Mat frame, Rect face, int fullMatrixSize, int matrixSize1D)
 {
-    int partition = (int)face.width / numThreads;
-    int start_x = (int)12 * partition;
+    int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int end_x = ((12 + 1) * partition) - 1;
+    int partition = (int)face.width / numThreads;
+    int start_x = (int)threadId * partition;
+
+    int end_x = ((threadId + 1) * partition) - 1;
 
     int max_x = face.x + (end_x < face.width ? end_x : face.width);
     int max_y = face.y + face.height;
@@ -103,7 +105,9 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
     {
         Rect r = faces[i];
         {
-            blurImage(img, r);
+
+
+            blurImage<<1, 1>>(img, r, fullMatrixSize, matrixSize1D);
         }
     }
 }
