@@ -24,9 +24,9 @@ using namespace std;
 void blurImage(Mat frame, Rect face)
 {
     int partition = (int)face.width / numThreads;
-    int start_x = (int)threadId * partition;
+    int start_x = (int)12 * partition;
 
-    int end_x = ((threadId + 1) * partition) - 1;
+    int end_x = ((12 + 1) * partition) - 1;
 
     int max_x = face.x + (end_x < face.width ? end_x : face.width);
     int max_y = face.y + face.height;
