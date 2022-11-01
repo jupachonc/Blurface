@@ -107,7 +107,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
         {
 
 
-            blurImage<<1, 1>>(img, r, fullMatrixSize, matrixSize1D);
+            blurImage<<<1, 1>>>(img, r, fullMatrixSize, matrixSize1D);
         }
     }
 }
