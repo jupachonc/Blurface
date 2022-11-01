@@ -24,8 +24,11 @@ using namespace std;
 // Function for Face Detection
 void detectAndBlur(Mat &img, CascadeClassifier &cascade);
 
+// Function for blur image
+void blurImage(Mat frame, Rect face, int threadId)
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
     // Time values
     struct timeval tval_before, tval_after, tval_result;
 
@@ -162,7 +165,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
     }
 }
 
-__global__ void blurImage(Mat frame, Rect face, int threadId)
+void blurImage(Mat frame, Rect face, int threadId)
 {
     int partition = (int)face.width / numThreads;
     int start_x = (int)threadId * partition;
