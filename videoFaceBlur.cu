@@ -83,7 +83,7 @@ __global__ void blurImage(Mat frame, Rect face, int fullMatrixSize, int matrixSi
         }
         */
     }
-}
+};
 
 
 void detectAndBlur(Mat &img, CascadeClassifier &cascade){
