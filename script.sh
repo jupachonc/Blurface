@@ -1,10 +1,10 @@
 #!/bin/sh
 echo "------------------------------------------------"
-echo "Computación paralela y distribuida - práctica 1"
+echo "Computación paralela y distribuida - práctica 2"
 echo "------------------------------------------------"
 echo "Compilando el programa ..."
 #Compilar el programa
-g++ -fopenmp videoFaceBlur.cpp -o videoFaceBlur `pkg-config --cflags --libs opencv4`
+g++ -fopenmp videoFaceBlur.cpp -o videoFaceBlur `pkg-config --cflags --libs opencv`
 echo "Compilación terminada, realizando pruebas ..."
 echo "------------------------ Procesando videos------------"
 echo "------------------------ Pruebas vídeo 1  ------------"
