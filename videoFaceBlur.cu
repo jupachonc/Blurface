@@ -21,8 +21,7 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(Mat frame, Rect face, int fullMatrixSize, int matrixSize1D)
-{
+__global__ void blurImage(Mat frame, Rect face, int fullMatrixSize, int matrixSize1D){
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
     int partition = (int)face.width / numThreads;
