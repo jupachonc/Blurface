@@ -21,7 +21,7 @@ using namespace cv;
 
 using namespace std;
 
-void blurImage(Mat frame, Rect face)
+__global__ void blurImage(Mat frame, Rect face)
 {
     int partition = (int)face.width / numThreads;
     int start_x = (int)12 * partition;
