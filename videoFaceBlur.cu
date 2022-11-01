@@ -21,35 +21,6 @@ using namespace cv;
 
 using namespace std;
 
-void detectAndBlur(Mat &img, CascadeClassifier &cascade)
-{
-    // Vector to save detected faces coordinates
-    vector<Rect> faces;
-
-    // Convert to Gray Scale
-    Mat gray;
-
-    cvtColor(img, gray, COLOR_BGR2GRAY);
-
-    // Resize the Grayscale Image
-    equalizeHist(gray, gray);
-
-    // Detect faces of different sizes using cascade classifier
-    cascade.detectMultiScale(gray, faces);
-
-    // Blur detected faces
-    for (size_t i = 0; i < faces.size(); i++)
-    {
-        Rect r = faces[i];
-
-        #pragma omp parallel num_threads(numThreads)
-        {
-            int ID = omp_get_thread_num();
-            blurImage(img, r, ID);
-        }
-    }
-}
-
 void blurImage(Mat frame, Rect face, int threadId)
 {
     int partition = (int)face.width / numThreads;
@@ -109,6 +80,38 @@ void blurImage(Mat frame, Rect face, int threadId)
         }
     }
 }
+
+
+void detectAndBlur(Mat &img, CascadeClassifier &cascade)
+{
+    // Vector to save detected faces coordinates
+    vector<Rect> faces;
+
+    // Convert to Gray Scale
+    Mat gray;
+
+    cvtColor(img, gray, COLOR_BGR2GRAY);
+
+    // Resize the Grayscale Image
+    equalizeHist(gray, gray);
+
+    // Detect faces of different sizes using cascade classifier
+    cascade.detectMultiScale(gray, faces);
+
+    // Blur detected faces
+    for (size_t i = 0; i < faces.size(); i++)
+    {
+        Rect r = faces[i];
+
+        #pragma omp parallel num_threads(numThreads)
+        {
+            int ID = omp_get_thread_num();
+            blurImage(img, r, ID);
+        }
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     // Time values
