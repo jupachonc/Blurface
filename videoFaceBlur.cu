@@ -21,7 +21,7 @@ using namespace cv;
 
 using namespace std;
 
-void blurImage(Mat frame, Rect face, int threadId)
+void blurImage(Mat frame, Rect face)
 {
     int partition = (int)face.width / numThreads;
     int start_x = (int)threadId * partition;
@@ -102,11 +102,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
     for (size_t i = 0; i < faces.size(); i++)
     {
         Rect r = faces[i];
-
-        #pragma omp parallel num_threads(numThreads)
         {
-            int ID = omp_get_thread_num();
-            blurImage(img, r, ID);
+            blurImage(img, r);
         }
     }
 }
