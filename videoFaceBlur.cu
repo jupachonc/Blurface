@@ -25,7 +25,7 @@ using namespace std;
 void detectAndBlur(Mat &img, CascadeClassifier &cascade);
 
 // Function for blur image
-void blurImage(Mat frame, Rect face, int threadId);
+__global__ void blurImage(Mat frame, Rect face, int threadId)
 
 int main(int argc, char *argv[])
 {
@@ -165,7 +165,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
     }
 }
 
-void blurImage(Mat frame, Rect face, int threadId)
+__global__ void blurImage(Mat frame, Rect face, int threadId)
 {
     int partition = (int)face.width / numThreads;
     int start_x = (int)threadId * partition;
