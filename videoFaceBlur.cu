@@ -24,8 +24,6 @@ using namespace std;
 // Function for Face Detection
 void detectAndBlur(Mat &img, CascadeClassifier &cascade);
 
-// Function for blur image
-__global__ void blurImage(Mat frame, Rect face, int threadId)
 
 int main(int argc, char *argv[]){
     // Time values
