@@ -105,9 +105,11 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
     {
         Rect r = faces[i];
         {
+            Mat face = frame[i];
 
+            cout << face << endl;
 
-            blurImage<<<1, 1>>>(img, r, fullMatrixSize, matrixSize1D);
+            //blurImage<<<1, 1>>>(img, r, fullMatrixSize, matrixSize1D);
         }
     }
 }
