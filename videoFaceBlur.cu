@@ -87,8 +87,7 @@ __global__ void blurImage(Mat frame, Rect face, int fullMatrixSize, int matrixSi
 }
 
 
-void detectAndBlur(Mat &img, CascadeClassifier &cascade)
-{
+void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     // Vector to save detected faces coordinates
     vector<Rect> faces;
 
@@ -118,8 +117,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade)
 }
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
     // Time values
     struct timeval tval_before, tval_after, tval_result;
 
@@ -216,14 +214,14 @@ int main(int argc, char *argv[])
 
     // Calculate time
     timersub(&tval_after, &tval_before, &tval_result);
-
+/*
     printf("\n-----------------------------------------\n");
     printf("Source video: %s\n", loadPath);
     printf("Output video: %s\n", savePath);
     printf("Threads: %d\n", numThreads);
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     printf("\n-----------------------------------------\n");
-
+*/
         return 0;
 }
 
