@@ -21,12 +21,94 @@ using namespace cv;
 
 using namespace std;
 
-// Function for Face Detection
-void detectAndBlur(Mat &img, CascadeClassifier &cascade);
+void detectAndBlur(Mat &img, CascadeClassifier &cascade)
+{
+    // Vector to save detected faces coordinates
+    vector<Rect> faces;
 
-// Function for blur image
+    // Convert to Gray Scale
+    Mat gray;
+
+    cvtColor(img, gray, COLOR_BGR2GRAY);
+
+    // Resize the Grayscale Image
+    equalizeHist(gray, gray);
+
+    // Detect faces of different sizes using cascade classifier
+    cascade.detectMultiScale(gray, faces);
+
+    // Blur detected faces
+    for (size_t i = 0; i < faces.size(); i++)
+    {
+        Rect r = faces[i];
+
+        #pragma omp parallel num_threads(numThreads)
+        {
+            int ID = omp_get_thread_num();
+            blurImage(img, r, ID);
+        }
+    }
+}
+
 void blurImage(Mat frame, Rect face, int threadId)
+{
+    int partition = (int)face.width / numThreads;
+    int start_x = (int)threadId * partition;
 
+    int end_x = ((threadId + 1) * partition) - 1;
+
+    int max_x = face.x + (end_x < face.width ? end_x : face.width);
+    int max_y = face.y + face.height;
+
+    for (int x = face.x + start_x; x <= max_x; x += matrixSize1D)
+    {
+        for (int y = face.y; y <= max_y; y += matrixSize1D)
+        {
+            // Allocate memmory for store the positions of the pixels in the group
+            Point2d *pixels_position = (Point2d *)malloc(sizeof(Point2d) * fullMatrixSize);
+            if (pixels_position == NULL)
+            {
+                perror("Error allocating memory for pixels positions");
+                exit(EXIT_FAILURE);
+            }
+
+            // Get the positions of all pixels in the group
+            for (int i = 0; i < fullMatrixSize; i++)
+            {
+                *(pixels_position + i) = Point(x + (i % matrixSize1D), y + (int)(i / matrixSize1D));
+            }
+
+            // Calculate the average value of the grouped pixels
+            int new_pixels[3] = {0, 0, 0};
+            for (int i = 0; i < fullMatrixSize; i++)
+            {
+                Point2d *pixel_position = pixels_position + i;
+                Vec3b pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
+
+                new_pixels[0] += pixel[0];
+                new_pixels[1] += pixel[1];
+                new_pixels[2] += pixel[2];
+            }
+            new_pixels[0] /= fullMatrixSize;
+            new_pixels[1] /= fullMatrixSize;
+            new_pixels[2] /= fullMatrixSize;
+
+            // Replace the value of all pixels in the group for the previous one calculated
+            for (int i = 0; i < fullMatrixSize; i++)
+            {
+                Point2d *pixel_position = pixels_position + i;
+                Vec3b &pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
+
+                pixel.val[0] = new_pixels[0];
+                pixel.val[1] = new_pixels[1];
+                pixel.val[2] = new_pixels[2];
+            }
+
+            // Free memory
+            free(pixels_position);
+        }
+    }
+}
 int main(int argc, char *argv[])
 {
     // Time values
@@ -136,91 +218,3 @@ int main(int argc, char *argv[])
         return 0;
 }
 
-void detectAndBlur(Mat &img, CascadeClassifier &cascade)
-{
-    // Vector to save detected faces coordinates
-    vector<Rect> faces;
-
-    // Convert to Gray Scale
-    Mat gray;
-
-    cvtColor(img, gray, COLOR_BGR2GRAY);
-
-    // Resize the Grayscale Image
-    equalizeHist(gray, gray);
-
-    // Detect faces of different sizes using cascade classifier
-    cascade.detectMultiScale(gray, faces);
-
-    // Blur detected faces
-    for (size_t i = 0; i < faces.size(); i++)
-    {
-        Rect r = faces[i];
-
-        #pragma omp parallel num_threads(numThreads)
-        {
-            int ID = omp_get_thread_num();
-            blurImage(img, r, ID);
-        }
-    }
-}
-
-void blurImage(Mat frame, Rect face, int threadId)
-{
-    int partition = (int)face.width / numThreads;
-    int start_x = (int)threadId * partition;
-
-    int end_x = ((threadId + 1) * partition) - 1;
-
-    int max_x = face.x + (end_x < face.width ? end_x : face.width);
-    int max_y = face.y + face.height;
-
-    for (int x = face.x + start_x; x <= max_x; x += matrixSize1D)
-    {
-        for (int y = face.y; y <= max_y; y += matrixSize1D)
-        {
-            // Allocate memmory for store the positions of the pixels in the group
-            Point2d *pixels_position = (Point2d *)malloc(sizeof(Point2d) * fullMatrixSize);
-            if (pixels_position == NULL)
-            {
-                perror("Error allocating memory for pixels positions");
-                exit(EXIT_FAILURE);
-            }
-
-            // Get the positions of all pixels in the group
-            for (int i = 0; i < fullMatrixSize; i++)
-            {
-                *(pixels_position + i) = Point(x + (i % matrixSize1D), y + (int)(i / matrixSize1D));
-            }
-
-            // Calculate the average value of the grouped pixels
-            int new_pixels[3] = {0, 0, 0};
-            for (int i = 0; i < fullMatrixSize; i++)
-            {
-                Point2d *pixel_position = pixels_position + i;
-                Vec3b pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
-
-                new_pixels[0] += pixel[0];
-                new_pixels[1] += pixel[1];
-                new_pixels[2] += pixel[2];
-            }
-            new_pixels[0] /= fullMatrixSize;
-            new_pixels[1] /= fullMatrixSize;
-            new_pixels[2] /= fullMatrixSize;
-
-            // Replace the value of all pixels in the group for the previous one calculated
-            for (int i = 0; i < fullMatrixSize; i++)
-            {
-                Point2d *pixel_position = pixels_position + i;
-                Vec3b &pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
-
-                pixel.val[0] = new_pixels[0];
-                pixel.val[1] = new_pixels[1];
-                pixel.val[2] = new_pixels[2];
-            }
-
-            // Free memory
-            free(pixels_position);
-        }
-    }
-}
