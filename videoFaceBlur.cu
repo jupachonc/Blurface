@@ -118,6 +118,12 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             cout << img.channels() << endl;
 
+            Mat img2;
+
+            img.convertTo(img2, CV_8SC3);
+
+            cout << img2.data << endl;
+
             short *d_B, *d_G, *d_R;
             short *h_B, *h_G, *h_R;
             short *d_rB, *d_rG, *d_rR;
