@@ -24,8 +24,8 @@ using namespace std;
 __global__ void blurImage(uchar *Matrix, uchar *rMatrix,
 int step, int width, int height, int initX, int initY, int numBlocks, int numThreads, int fullMatrixSize, int matrixSize1D){
 
-    int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : width / numBlocks;
-    int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : height / numThreads;
+    int partitionX = width / numBlocks;
+    int partitionY = height / numThreads;
 
     //printf("X: %d\n Y: %d\n", partitionX, partitionY);
 
