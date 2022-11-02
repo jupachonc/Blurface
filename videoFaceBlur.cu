@@ -28,14 +28,14 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
 
     int threadIdY = blockDim.y * blockIdx.y + threadIdx.y;
 
-    int partitionX = width / numThreads;
+    int partitionX = width / numBlocks;
     int partitionY = height / numThreads;
     //printf("Device width %d \n", width);
-    int start_x = threadIdX * partitionX;
-    int start_y = threadIdY * partitionY;
+    int start_x = blockIdx.x * partitionX;
+    int start_y = threadIdx.x * partitionY;
 
-    int end_x = ((threadIdX + 1) * partitionX) - 1;
-    int end_y = ((threadIdY + 1) * partitionY) - 1;
+    int end_x = ((blockIdx.x + 1) * partitionX) - 1;
+    int end_y = ((threadIdx.x + 1) * partitionY) - 1;
 
     
 
