@@ -21,7 +21,7 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(short *B, short *G, short *R, 
+__global__ void blurImage(short *Matrix, 
 int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -49,9 +49,9 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
                 
-                new_pixels[0] += B[(step*row) + col];
-                new_pixels[1] += G[(step*row) + col];
-                new_pixels[2] += R[(step*row) + col];
+                new_pixels[0] += Matrix[(step*row) + col];
+                //new_pixels[1] += G[(step*row) + col];
+                //new_pixels[2] += R[(step*row) + col];
 
             }
 
@@ -65,9 +65,9 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
                 
-                B[(step*row) + col] = new_pixels[0];
-                G[(step*row) + col] = new_pixels[1];
-                R[(step*row) + col] = new_pixels[2];
+                Matrix[(step*row) + col] = new_pixels[0];
+                //G[(step*row) + col] = new_pixels[1];
+                //R[(step*row) + col] = new_pixels[2];
             }
 
         
@@ -149,7 +149,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             int nBlocks = 80;
             int nThreads = 256;
 
-            blurImage<<<nBlocks, nThreads>>>(d_B, d_G, d_R, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<nBlocks, nThreads>>>(d_Matrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
             cudaFree(d_Matrix);
             free(h_Matrix);
