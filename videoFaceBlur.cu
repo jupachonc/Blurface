@@ -127,9 +127,9 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             h_rG = (short *)malloc(size);
             h_rR = (short *)malloc(size);
 
-            h_B = B.data;
-            h_G = G.data;
-            h_R = R.data;
+            h_B = (short *)B.data;
+            h_G = (short *)G.data;
+            h_R = (short *)R.data;
 
             err = cudaMalloc((void **) &d_B, size);
 
