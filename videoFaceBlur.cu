@@ -35,8 +35,8 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     for (int j = (initX * initY) + start_x; j <= end_x; j += fullMatrixSize)
     {
 
-        int x = j % matrixSize1D;
-        int y = (int) (j / matrixSize1D);
+        int x = (int) j / matrixSize1D;
+        int y = (int) (j % matrixSize1D);
             
             int new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
