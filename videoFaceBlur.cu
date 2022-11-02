@@ -31,11 +31,11 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     //printf("Device width %d \n", width);
     int start_x = (threadId * partition) % fullMatrixSize;
 
-    int start_y = (int) (threadId * partition) / matrixSize1D;
+    int start_y = (int) (threadId * partition) / fullMatrixSize;
 
     int end_x = ((threadId + 1) * partition) % fullMatrixSize - 1;
 
-    int end_y = (int) (threadId + 1 * partition) / matrixSize1D -1;
+    int end_y = (int) (threadId + 1 * partition) / fullMatrixSize - 1;
 
     
 
