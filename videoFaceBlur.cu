@@ -44,7 +44,7 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
     int max_x = initX + (end_x < width ? end_x : width);
     int max_y = initY + (end_y < height ? end_y : height);
 
-    printf("Max_X: %d", max_x);
+    printf("%d\n", blockDim.x * blockIdx.x + threadIdx.x);
 
     for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
