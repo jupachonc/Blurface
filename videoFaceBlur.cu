@@ -24,8 +24,8 @@ using namespace std;
 __global__ void blurImage(Mat *frame, Rect *face, int *fullMatrixSize, int *matrixSize1D){
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int partition = (int)face.width / numThreads;
-    int start_x = (int)threadId * partition;
+    int partition = face.width / numThreads;
+    int start_x = threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
 
