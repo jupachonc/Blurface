@@ -80,6 +80,8 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
                 rMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
 
+            printf('inside kernel');
+
         
             
         } 
