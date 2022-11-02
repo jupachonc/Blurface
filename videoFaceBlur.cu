@@ -146,21 +146,21 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_B, B.data, size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_B, *(B.data), size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy B from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_G, G.data, size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_G, *(G.data), size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy G from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_R, R.data, size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_R, *(R.data), size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy R from host to device (error code %s)!\n", cudaGetErrorString(err));
