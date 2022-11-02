@@ -115,12 +115,21 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             int size = sizeof(B.data);
 
             short *d_B, *d_G, *d_R;
+            short *h_B, *h_G, *h_R;
             short *d_rB, *d_rG, *d_rR;
             short *h_rB, *h_rG, *h_rR;
+
+            h_B = (short *)malloc(size);
+            h_G = (short *)malloc(size);
+            h_R = (short *)malloc(size);
 
             h_rB = (short *)malloc(size);
             h_rG = (short *)malloc(size);
             h_rR = (short *)malloc(size);
+
+            h_B = B.data;
+            h_G = G.data;
+            h_R = R.data;
 
             err = cudaMalloc((void **) &d_B, size);
 
@@ -146,21 +155,21 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_B, &(B.data), size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy B from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_G, &(G.data), size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_G, h_G, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy G from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_R, &(R.data), size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_R, h_R, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy R from host to device (error code %s)!\n", cudaGetErrorString(err));
