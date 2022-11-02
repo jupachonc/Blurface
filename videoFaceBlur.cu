@@ -120,8 +120,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             short *d_Matrix;
             short *h_Matrix;
-            short *d_rMatrix
-            short *h_rMatrix
+            short *d_rMatrix;
+            short *h_rMatrix;
 
             h_Matrix = (short *)malloc(size);
 
