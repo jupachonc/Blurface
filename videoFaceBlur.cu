@@ -165,10 +165,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = 80;
-            int nThreads = 256;
-
-            printf("Host width: %d\n", r.width);
+            int nBlocks = 6;
+            int nThreads = 2;
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
