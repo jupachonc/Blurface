@@ -27,7 +27,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
     int partition = width / numThreads;
-    printf("%d", partition);
+    printf("%d", width);
     int start_x = threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
