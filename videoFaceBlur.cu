@@ -27,14 +27,13 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
     int partition = (width * height) / numThreads;
-
-    int partitionX = width / numThreads; 
+    
     //printf("Device width %d \n", width);
-    int start_x = threadId * partitionX;
+    int start_x = (threadId * partition) % fullMatrixSize;
 
     int start_y = (int) (threadId * partition) / matrixSize1D;
 
-    int end_x = ((threadId + 1) * partitionX)- 1;
+    int end_x = ((threadId + 1) * partition) % fullMatrixSize - 1;
 
     int end_y = (int) (threadId + 1 * partition) / matrixSize1D -1;
 
