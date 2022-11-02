@@ -22,7 +22,7 @@ using namespace cv;
 using namespace std;
 
 __global__ void blurImage(short *B, short *G, short *R, 
-int width, int height, int initX, int initY,int nThreads, int fullMatrixSize, int matrixSize1D){
+int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
