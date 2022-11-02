@@ -21,7 +21,7 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(short *Matrix, short *rMatrix,
+__global__ void blurImage(uchar *Matrix, uchar *rMatrix,
 int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -44,7 +44,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
         {
 
             
-            short new_pixels[3] = {0, 0, 0};
+            uchar new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
             for (int i = 0; i < fullMatrixSize; i++)
             {
@@ -122,16 +122,16 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             //cout << img.channels() << endl;
 
-            short *d_Matrix;
-            short *h_Matrix;
-            short *d_rMatrix;
-            short *h_rMatrix;
+            uchar *d_Matrix;
+            uchar *h_Matrix;
+            uchar *d_rMatrix;
+            uchar *h_rMatrix;
 
-            h_Matrix = (short *)malloc(size);
+            h_Matrix = (uchar *)malloc(size);
 
-            h_rMatrix= (short *)malloc(size);
+            h_rMatrix= (uchar *)malloc(size);
 
-            h_Matrix = (short *) img.data;
+            h_Matrix = (uchar *) img.data;
 
             err = cudaMalloc((void **) &d_Matrix, size);
 
@@ -182,7 +182,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
         exit(EXIT_FAILURE);
     }
 
-    img.data = (uchar *)h_rMatrix;
+    img.data = h_rMatrix;
 
     cudaFree(d_Matrix);
             cudaFree(d_rMatrix);
