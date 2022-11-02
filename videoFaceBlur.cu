@@ -118,30 +118,18 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             //cout << img.channels() << endl;
 
-            Mat img2;
+            short *d_Matrix;
+            short *h_Matrix;
+            short *d_rMatrix
+            short *h_rMatrix
 
-            img.convertTo(img2, CV_8SC3);
+            h_Matrix = (short *)malloc(size);
 
-            cout << (short) img2.data << endl;
+            h_rMatrix= (short *)malloc(size);
 
-            short *d_B, *d_G, *d_R;
-            short *h_B, *h_G, *h_R;
-            short *d_rB, *d_rG, *d_rR;
-            short *h_rB, *h_rG, *h_rR;
+            h_Matrix = (short *) img.data;
 
-            h_B = (short *)malloc(size);
-            h_G = (short *)malloc(size);
-            h_R = (short *)malloc(size);
-
-            h_rB = (short *)malloc(size);
-            h_rG = (short *)malloc(size);
-            h_rR = (short *)malloc(size);
-
-            h_B = (short *)B.data;
-            h_G = (short *)G.data;
-            h_R = (short *)R.data;
-
-            err = cudaMalloc((void **) &d_B, size);
+            err = cudaMalloc((void **) &d_Matrix, size);
 
             if (err != cudaSuccess)
             {
@@ -149,51 +137,23 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMalloc((void **) &d_G, size);
 
+            err = cudaMemcpy(d_Matrix, h_Matrix, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
-                fprintf(stderr, "Failed to allocate device d_G (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-            err = cudaMalloc((void **) &d_R, size);
-
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to allocate device d_R (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-            err = cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to copy B from host to device (error code %s)!\n", cudaGetErrorString(err));
+                fprintf(stderr, "Failed to copy Matrix from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
 
-            err = cudaMemcpy(d_G, h_G, size, cudaMemcpyHostToDevice);
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to copy G from host to device (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-            err = cudaMemcpy(d_R, h_R, size, cudaMemcpyHostToDevice);
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to copy R from host to device (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
             int nBlocks = 80;
             int nThreads = 256;
 
             blurImage<<<nBlocks, nThreads>>>(d_B, d_G, d_R, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
-            cudaFree(d_B);
-            cudaFree(d_G);
-            cudaFree(d_R);
+            cudaFree(d_Matrix);
+            free(h_Matrix);
+
         
         }
     }
