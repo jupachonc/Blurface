@@ -224,7 +224,7 @@ int main(int argc, char *argv[]){
     gettimeofday(&tval_before, NULL);
 
     // Force OpenCV use number of threads
-    setNumThreads(numThreads);
+    //setNumThreads(numThreads);
 
     // PreDefined trained XML classifiers with facial features
     CascadeClassifier cascade;
@@ -282,7 +282,7 @@ int main(int argc, char *argv[]){
 
         i++;
 
-        cout << i <<endl;
+        //cout << i <<endl;
     }
 
     cap.release();
