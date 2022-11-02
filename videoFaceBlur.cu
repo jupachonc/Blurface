@@ -161,8 +161,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             cudaDeviceSynchronize();
 
-            cudaFree(d_Matrix);
-            cudaFree(d_rMatrix);
+            
 
             err = cudaMemcpy(h_rMatrix, d_rMatrix, size, cudaMemcpyDeviceToHost);
     if (err != cudaSuccess)
@@ -172,6 +171,9 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     }
 
     img.data = (uchar *)h_rMatrix;
+
+    cudaFree(d_Matrix);
+            cudaFree(d_rMatrix);
 
         
         }
