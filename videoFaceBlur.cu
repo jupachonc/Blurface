@@ -24,17 +24,17 @@ using namespace std;
 __global__ void blurImage(Mat *frame, Rect *face, int *fullMatrixSize, int *matrixSize1D){
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int partition = face.width / numThreads;
-    int start_x = threadId * partition;
+    int partition = (int) *face.width / 1;
+    int start_x = (int)threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
 
-    int max_x = face.x + (end_x < face.width ? end_x : face.width);
-    int max_y = face.y + face.height;
+    int max_x = *face.x + (end_x < *face.width ? end_x : *face.width);
+    int max_y = *face.y + *face.height;
 
-    for (int x = face.x + start_x; x <= max_x; x += matrixSize1D)
+    for (int x = *face.x + start_x; x <= max_x; x += *matrixSize1D)
     {
-        for (int y = face.y; y <= max_y; y += matrixSize1D)
+        for (int y = *face.y; y <= max_y; y += *matrixSize1D)
         {
 
             /*
