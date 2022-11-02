@@ -261,7 +261,7 @@ int main(int argc, char *argv[]){
     //  CV_CAP_PROP_POS_FRAMES : Index of the next frame.
 
     int i = 0;
-    while (i < frame_count)
+    while (i < 100)
     {
         cap.set(CAP_PROP_POS_FRAMES, i);
         Mat frame;
