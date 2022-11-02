@@ -80,8 +80,9 @@ __global__ void blurImage(Mat *frame, Rect *face, int *fullMatrixSize, int *matr
 
             // Free memory
             free(pixels_position);
+            */
         }
-        */
+        
     }
 };
 
