@@ -21,21 +21,21 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(short* img, Rect *face, int *fullMatrixSize, int *matrixSize1D){
+__global__ void blurImage(short *B, short *G, short *R, 
+int width, int height, int initX, int initY,int nThreads, int fullMatrixSize, int matrixSize1D){
+    
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
-/*
-    int d_face = *face;
 
-    int partition = (int) d_face.width / 1;
-    int start_x = (int)threadId * partition;
+    int partition = width / numThreads;
+    int start_x = threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
 
     
 
-    int max_x = d_face.x + (end_x < d_face.width ? end_x : d_face.width);
-    int max_y = d_face.y + d_face.height;
-
+    int max_x = initX + (end_x < width ? end_x : width);
+    int max_y = initY + height;
+/*
     for (int x = d_face.x + start_x; x <= max_x; x += *matrixSize1D)
     {
         for (int y = d_face.y; y <= max_y; y += *matrixSize1D)
@@ -109,9 +109,15 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     // Detect faces of different sizes using cascade classifier
     cascade.detectMultiScale(gray, faces);
 
-    Mat chanels[3];
+    Mat channels[3];
 
-    split(img, chanels);
+    split(img, channels);
+
+    Mat B, G, R;
+
+    B = channels[0];
+    G = channels[1];
+    R = channels[2];
 
     // Blur detected faces
     for (size_t i = 0; i < faces.size(); i++)
