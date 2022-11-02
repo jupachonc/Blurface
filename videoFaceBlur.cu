@@ -27,7 +27,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
     int partition = width / numThreads;
-    printf("Device width %d \n", width);
+    //printf("Device width %d \n", width);
     int start_x = threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
@@ -44,7 +44,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
         {
 
             
-            int new_pixels[3] = {0, 0, 0};
+            short new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
             for (int i = 0; i < fullMatrixSize; i++)
             {
@@ -67,7 +67,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
-                printf("%d, %d", col, row);
+                //printf("%d, %d", col, row);
                 
                 *(rMatrix + ((3 * step * row) + (3 * col) + 0)) = (short) 2;
                 *(rMatrix + ((3 * step * row) + (3 * col) + 1)) = (short) 2;
