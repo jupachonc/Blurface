@@ -31,7 +31,7 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
     int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : width / numBlocks;
     int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : height / numThreads;
 
-    printf("X: %d\n Y: %d\n", partitionX, partitionY);
+    //printf("X: %d\n Y: %d\n", partitionX, partitionY);
 
     int start_x = blockIdx.x * partitionX;
     int start_y = threadIdx.x * partitionY;
@@ -165,8 +165,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = 32;
-            int nThreads = 32;
+            int nBlocks = r.width/matrixSize1D;
+            int nThreads = r.height/matrixSize1D;
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
