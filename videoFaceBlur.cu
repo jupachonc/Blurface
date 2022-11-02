@@ -186,8 +186,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             cudaFree(d_Matrix);
             cudaFree(d_rMatrix);
-            free(h_Matrix);
-            free(h_rMatrix);
+            //free(h_Matrix);
+            //free(h_rMatrix);
 
         
         }
