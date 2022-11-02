@@ -28,9 +28,9 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
 
     int threadIdY = blockDim.y * blockIdx.y + threadIdx.y;
 
-    int partitionX = width / numBlocks;
-    int partitionY = height / numThreads;
-    //printf("Device width %d \n", width);
+    int partitionX = width / numBlocks < matrixSize1D ? matrixSize1D : width / numBlocks;
+    int partitionY = height / numThreads < matrixSize1D ? matrixSize1D : height / numThreads;
+
     int start_x = blockIdx.x * partitionX;
     int start_y = threadIdx.x * partitionY;
 
@@ -106,16 +106,6 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     // Detect faces of different sizes using cascade classifier
     cascade.detectMultiScale(gray, faces);
 
-    Mat channels[3];
-
-    split(img, channels);
-
-    Mat B, G, R;
-
-    B = channels[0];
-    G = channels[1];
-    R = channels[2];
-
     // Blur detected faces
     for (size_t i = 0; i < faces.size(); i++)
     {
@@ -142,7 +132,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             if (err != cudaSuccess)
             {
-                fprintf(stderr, "Failed to allocate device d_B (error code %s)!\n", cudaGetErrorString(err));
+                fprintf(stderr, "Failed to allocate device d_Matrix (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
@@ -158,7 +148,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             if (err != cudaSuccess)
             {
-                fprintf(stderr, "Failed to allocate device d_B (error code %s)!\n", cudaGetErrorString(err));
+                fprintf(stderr, "Failed to allocate device rMatrix (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
@@ -171,8 +161,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = 6;
-            int nThreads = 2;
+            int nBlocks = 64;
+            int nThreads = 256;
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
@@ -181,16 +171,18 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             
 
             err = cudaMemcpy(h_rMatrix, d_rMatrix, size, cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess)
-    {
-        fprintf(stderr, "Failed to copy rMatR from device to host (error code %s)!\n", cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
-    }
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to copy resultMatrix from device to host (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
 
-    img.data = h_rMatrix;
+            img.data = h_rMatrix;
 
-    cudaFree(d_Matrix);
+            cudaFree(d_Matrix);
             cudaFree(d_rMatrix);
+            free(h_Matrix);
+            free(h_rMatrix);
 
         
         }
