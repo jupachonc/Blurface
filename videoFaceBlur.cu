@@ -65,9 +65,9 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
                 
-                rMatrix[(3 * step * row) + (3 * col) + 0] = 255;
-                rMatrix[(3 * step * row) + (3 * col) + 1] = 255;
-                rMatrix[(3 * step * row) + (3 * col) + 2] = 255;
+                *rMatrix[(3 * step * row) + (3 * col) + 0] = 255;
+                *rMatrix[(3 * step * row) + (3 * col) + 1] = 255;
+                *rMatrix[(3 * step * row) + (3 * col) + 2] = 255;
             }
 
         
