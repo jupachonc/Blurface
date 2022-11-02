@@ -28,26 +28,15 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
 
     int partition = (width * height) / numThreads;
     
-    //printf("Device width %d \n", width);
-    int start_x = (int) (threadId * partition) % partition;
+    int start_x = threadId * partition;
 
-    int start_y = (int) (threadId * partition) / partition + start_x;
+    int end_x = ((threadId + 1) * partition) - 1;
 
-    int end_x = (int) (((threadId + 1) * partition) % partition) - 1;
-
-    int end_y = (int) (threadId + 1 * partition) / partition + end_x -1;
-
-    
-
-    int max_x = initX + (end_x < width ? end_x : width);
-    int max_y = initY + (end_y < height ? end_y : height);
-
-    for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
+    for (int j = (initX * initY) + start_x; x <= end_x; x += fullMatrixSize)
     {
 
-        for (int y = initY + start_y; y <= max_y; y += matrixSize1D)
-        {
-
+        int x = j % matrixSize1D;
+        int y = (int) (j / matrixSize1D);
             
             int new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
@@ -82,7 +71,6 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
 
         
             
-        }
         
     }
 
