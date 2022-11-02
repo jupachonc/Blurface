@@ -71,7 +71,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
 
                 //printf("%d, %d", col, row);
                 printf("before %hu\n", rMatrix[(3 * step * row) + (3 * col) + 0] );
-                rMatrix[(3 * step * row) + (3 * col) + 0] = 27756;
+                //rMatrix[(3 * step * row) + (3 * col) + 0] = 27756;
                 printf("after %hu\n", rMatrix[(3 * step * row) + (3 * col) + 0] );
                 rMatrix[(3 * step * row) + (3 * col) + 1] = 27756;
                 rMatrix[(3 * step * row) + (3 * col) + 2] = 27756;
