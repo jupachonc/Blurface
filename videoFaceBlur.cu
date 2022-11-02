@@ -32,7 +32,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
 
     int end_x = ((threadId + 1) * partition) - 1;
 
-    for (int j = (initX * initY) + start_x; x <= end_x; x += fullMatrixSize)
+    for (int j = (initX * initY) + start_x; j <= end_x; j += fullMatrixSize)
     {
 
         int x = j % matrixSize1D;
