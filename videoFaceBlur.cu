@@ -23,10 +23,6 @@ using namespace std;
 
 __global__ void blurImage(uchar *Matrix, uchar *rMatrix,
 int step, int width, int height, int initX, int initY, int numBlocks, int numThreads, int fullMatrixSize, int matrixSize1D){
-    
-    int threadIdX = blockDim.x * blockIdx.x + threadIdx.x;
-
-    int threadIdY = blockDim.y * blockIdx.y + threadIdx.y;
 
     int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : width / numBlocks;
     int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : height / numThreads;
