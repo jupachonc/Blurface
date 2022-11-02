@@ -41,7 +41,7 @@ __global__ void blurImage(short* img, Rect *face, int *fullMatrixSize, int *matr
         for (int y = d_face.y; y <= max_y; y += *matrixSize1D)
         {
 
-            /*
+            
             // Allocate memmory for store the positions of the pixels in the group
             Point2d *pixels_position = (Point2d *)malloc(sizeof(Point2d) * fullMatrixSize);
             if (pixels_position == NULL)
@@ -84,12 +84,13 @@ __global__ void blurImage(short* img, Rect *face, int *fullMatrixSize, int *matr
 
             // Free memory
             free(pixels_position);
-            */
+            
         }
         
     }
 
     */
+
 };
 
 
