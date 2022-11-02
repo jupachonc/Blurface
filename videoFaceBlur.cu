@@ -44,6 +44,8 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
     int max_x = initX + (end_x < width ? end_x : width);
     int max_y = initY + (end_y < height ? end_y : height);
 
+    cout << "max_x" << max_x <<endl;
+
     for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
 
