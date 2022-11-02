@@ -152,7 +152,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
             cudaFree(d_Matrix);
-            free(h_Matrix);
+            //free(h_Matrix);
 
         
         }
