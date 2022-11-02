@@ -69,10 +69,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
-                //printf("%d, %d", col, row);
-                printf("before %hu\n", Matrix[(3 * (step/8) * row) + (3 * col) + 0] );
-                //rMatrix[(3 * step * row) + (3 * col) + 0] = 27756;
-                printf("after %hu\n", rMatrix[(3 * step * row) + (3 * col) + 0] );
+                rMatrix[(3 * step * row) + (3 * col) + 0] = 27756;
                 rMatrix[(3 * step * row) + (3 * col) + 1] = 27756;
                 rMatrix[(3 * step * row) + (3 * col) + 2] = 27756;
             }
@@ -172,7 +169,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             int nBlocks = 6;
             int nThreads = 2;
 
-            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
             cudaDeviceSynchronize();
 
