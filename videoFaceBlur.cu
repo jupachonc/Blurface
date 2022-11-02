@@ -46,8 +46,8 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
             // Get the positions of all pixels in the group
             for (int i = 0; i < fullMatrixSize; i++)
             {
-                int col = x + (i % matrixSize1D)
-                int row = y + (int)(i / matrixSize1D)
+                int col = x + (i % matrixSize1D);
+                int row = y + (int)(i / matrixSize1D);
                 
                 new_pixels[0] += B[(step*row) + col];
                 new_pixels[1] += G[(step*row) + col];
@@ -55,14 +55,6 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
 
             }
 
-            // Calculate the average value of the grouped pixels
-            for (int i = 0; i < fullMatrixSize; i++)
-            {
-                Point2d *pixel_position = pixels_position + i;
-                Vec3b pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
-
-
-            }
             new_pixels[0] /= fullMatrixSize;
             new_pixels[1] /= fullMatrixSize;
             new_pixels[2] /= fullMatrixSize;
@@ -70,8 +62,8 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
             // Replace the value of all pixels in the group for the previous one calculated
             for (int i = 0; i < fullMatrixSize; i++)
             {
-                int col = x + (i % matrixSize1D)
-                int row = y + (int)(i / matrixSize1D)
+                int col = x + (i % matrixSize1D);
+                int row = y + (int)(i / matrixSize1D);
                 
                 B[(step*row) + col] = new_pixels[0];
                 G[(step*row) + col] = new_pixels[1];
@@ -120,7 +112,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     {
         Rect r = faces[i];
         {
-            int size = sizeOf(B);
+            int size = sizeOf(B.data);
 
             short *d_B, *d_G, *d_R;
             short *d_rB, *d_rG, *d_rR;
@@ -154,21 +146,21 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_B, B.data, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy B from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_G, G, size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_G, G.data, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy G from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
 
-            err = cudaMemcpy(d_R, R, size, cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_R, R.data, size, cudaMemcpyHostToDevice);
             if (err != cudaSuccess)
             {
                 fprintf(stderr, "Failed to copy R from host to device (error code %s)!\n", cudaGetErrorString(err));
