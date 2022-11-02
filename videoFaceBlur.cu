@@ -126,7 +126,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
         {
             
 
-            cout << chanels[0].data << endl;
+            cout << channels[0].data << endl;
 
             //blurImage<<<1, 1>>>(img, r, fullMatrixSize, matrixSize1D);
         }
