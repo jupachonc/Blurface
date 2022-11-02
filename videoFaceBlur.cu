@@ -21,7 +21,7 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(short *Matrix, 
+__global__ void blurImage(short *Matrix, short *rMatrix,
 int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -49,9 +49,9 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
                 
-                new_pixels[0] += Matrix[(step*row) + col];
-                //new_pixels[1] += G[(step*row) + col];
-                //new_pixels[2] += R[(step*row) + col];
+                new_pixels[0] += Matrix[(3 * step * row) + (3 * col) + 0];
+                new_pixels[1] += Matrix[(3 * step * row) + (3 * col) + 1];
+                new_pixels[2] += Matrix[(3 * step * row) + (3 * col) + 2];
 
             }
 
@@ -65,9 +65,9 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
                 
-                Matrix[(step*row) + col] = new_pixels[0];
-                //G[(step*row) + col] = new_pixels[1];
-                //R[(step*row) + col] = new_pixels[2];
+                rMatrix[(3 * step * row) + (3 * col) + 0] = (short) new_pixels[0];
+                rMatrix[(3 * step * row) + (3 * col) + 1] = (short) new_pixels[1];
+                rMatrix[(3 * step * row) + (3 * col) + 2] = (short) new_pixels[2];
             }
 
         
@@ -145,14 +145,33 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 exit(EXIT_FAILURE);
             }
 
+            err = cudaMalloc((void **) &d_rMatrix, size);
+
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to allocate device d_B (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
 
             int nBlocks = 80;
             int nThreads = 256;
 
-            blurImage<<<nBlocks, nThreads>>>(d_Matrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
+
+            cudaDeviceSynchronize();
 
             cudaFree(d_Matrix);
-            //free(h_Matrix);
+            cudaFree(d_rMatrix);
+
+            err = cudaMemcpy(h_rMatrix, d_rMatrix, size, cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to copy rMatR from device to host (error code %s)!\n", cudaGetErrorString(err));
+        exit(EXIT_FAILURE);
+    }
+
+    img.data = *h_rMatrix;
 
         
         }
