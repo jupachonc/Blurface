@@ -27,6 +27,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
     int partition = width / numThreads;
+    printf("%d", partition);
     int start_x = threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
@@ -38,7 +39,6 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
 
     for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
-            printf("BlurImage kernel");
 
         for (int y = initY; y <= max_y; y += matrixSize1D)
         {
