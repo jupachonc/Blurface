@@ -31,6 +31,8 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
     int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : width / numBlocks;
     int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : height / numThreads;
 
+    printf("X: %d\n Y: %d\n", partitionX, partitionY);
+
     int start_x = blockIdx.x * partitionX;
     int start_y = threadIdx.x * partitionY;
 
@@ -80,7 +82,7 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
                 rMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
 
-            printf("inside kernel\n");
+            //printf("inside kernel\n");
 
         
             
