@@ -44,7 +44,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
         {
 
             
-            uchar new_pixels[3] = {0, 0, 0};
+            int new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
             for (int i = 0; i < fullMatrixSize; i++)
             {
@@ -58,7 +58,11 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 //printf("%hu\n", Matrix[(3 * step * row) + (3 * col) + 0]);
 
             }
+            
 
+            new_pixels[0] /= fullMatrixSize;
+            new_pixels[1] /= fullMatrixSize;
+            new_pixels[2] /= fullMatrixSize;
 
             // Replace the value of all pixels in the group for the previous one calculated
             for (int i = 0; i < fullMatrixSize; i++)
@@ -66,9 +70,9 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
-                rMatrix[(3 * step * row) + (3 * col) + 0] = new_pixels[0];
-                rMatrix[(3 * step * row) + (3 * col) + 1] = new_pixels[1];
-                rMatrix[(3 * step * row) + (3 * col) + 2] = new_pixels[2];
+                rMatrix[(3 * step * row) + (3 * col) + 0] = (uchar) new_pixels[0];
+                rMatrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
+                rMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
 
         
