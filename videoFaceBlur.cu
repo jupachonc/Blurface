@@ -163,15 +163,15 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = r.width/matrixSize1D -1;
-            int nThreads = r.height/matrixSize1D -1;
+            int nBlocks = r.width/matrixSize1D;
+            int nThreads = r.height/matrixSize1D;
 
             cout << nBlocks << endl;
             cout << nThreads << endl;
 
-            blurImage<<<6, 2>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
-            //cudaDeviceSynchronize();
+            cudaDeviceSynchronize();
 
             
 
