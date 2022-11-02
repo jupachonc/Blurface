@@ -27,7 +27,7 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
     int partition = width / numThreads;
-    printf("%d", width);
+    printf("Device width %d \n", width);
     int start_x = threadId * partition;
 
     int end_x = ((threadId + 1) * partition) - 1;
@@ -167,6 +167,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             int nBlocks = 80;
             int nThreads = 256;
+
+            printf("Host width: %d\n", r.width);
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
