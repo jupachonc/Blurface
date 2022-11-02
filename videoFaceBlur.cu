@@ -28,8 +28,8 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
 
     int threadIdY = blockDim.y * blockIdx.y + threadIdx.y;
 
-    int partitionX = width / numBlocks < matrixSize1D ? matrixSize1D : width / numBlocks;
-    int partitionY = height / numThreads < matrixSize1D ? matrixSize1D : height / numThreads;
+    int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : width / numBlocks;
+    int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : height / numThreads;
 
     int start_x = blockIdx.x * partitionX;
     int start_y = threadIdx.x * partitionY;
@@ -162,7 +162,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
 
             int nBlocks = 64;
-            int nThreads = 256;
+            int nThreads = 64;
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
