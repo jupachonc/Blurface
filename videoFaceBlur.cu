@@ -22,7 +22,7 @@ using namespace cv;
 using namespace std;
 
 __global__ void blurImage(short *B, short *G, short *R, 
-int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
+int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -35,37 +35,33 @@ int width, int height, int initX, int initY, int numThreads, int fullMatrixSize,
 
     int max_x = initX + (end_x < width ? end_x : width);
     int max_y = initY + height;
-/*
-    for (int x = d_face.x + start_x; x <= max_x; x += *matrixSize1D)
+
+    for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
-        for (int y = d_face.y; y <= max_y; y += *matrixSize1D)
+        for (int y = initY; y <= max_y; y += matrixSize1D)
         {
 
             
-            // Allocate memmory for store the positions of the pixels in the group
-            Point2d *pixels_position = (Point2d *)malloc(sizeof(Point2d) * fullMatrixSize);
-            if (pixels_position == NULL)
-            {
-                perror("Error allocating memory for pixels positions");
-                exit(EXIT_FAILURE);
-            }
-
+            int new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
             for (int i = 0; i < fullMatrixSize; i++)
             {
-                *(pixels_position + i) = Point(x + (i % matrixSize1D), y + (int)(i / matrixSize1D));
+                int col = x + (i % matrixSize1D)
+                int row = y + (int)(i / matrixSize1D)
+                
+                new_pixels[0] += B[(step*row) + col];
+                new_pixels[1] += G[(step*row) + col];
+                new_pixels[2] += R[(step*row) + col];
+
             }
 
             // Calculate the average value of the grouped pixels
-            int new_pixels[3] = {0, 0, 0};
             for (int i = 0; i < fullMatrixSize; i++)
             {
                 Point2d *pixel_position = pixels_position + i;
                 Vec3b pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
 
-                new_pixels[0] += pixel[0];
-                new_pixels[1] += pixel[1];
-                new_pixels[2] += pixel[2];
+
             }
             new_pixels[0] /= fullMatrixSize;
             new_pixels[1] /= fullMatrixSize;
@@ -74,27 +70,27 @@ int width, int height, int initX, int initY, int numThreads, int fullMatrixSize,
             // Replace the value of all pixels in the group for the previous one calculated
             for (int i = 0; i < fullMatrixSize; i++)
             {
-                Point2d *pixel_position = pixels_position + i;
-                Vec3b &pixel = frame.at<Vec3b>(pixel_position->y, pixel_position->x);
-
-                pixel.val[0] = new_pixels[0];
-                pixel.val[1] = new_pixels[1];
-                pixel.val[2] = new_pixels[2];
+                int col = x + (i % matrixSize1D)
+                int row = y + (int)(i / matrixSize1D)
+                
+                B[(step*row) + col] = new_pixels[0];
+                G[(step*row) + col] = new_pixels[1];
+                R[(step*row) + col] = new_pixels[2];
             }
 
-            // Free memory
-            free(pixels_position);
+        
             
         }
         
     }
 
-    */
+
 
 };
 
 
 void detectAndBlur(Mat &img, CascadeClassifier &cascade){
+    cudaError_t err = cudaSuccess;
     // Vector to save detected faces coordinates
     vector<Rect> faces;
 
@@ -124,11 +120,62 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     {
         Rect r = faces[i];
         {
-            
+            int size = sizeOf(B);
 
-            cout << channels[0].data << endl;
+            short *d_B, *d_G, *d_R;
+            short *d_rB, *d_rG, *d_rR;
+            short *h_rB, *h_rG, *h_rR;
 
-            //blurImage<<<1, 1>>>(img, r, fullMatrixSize, matrixSize1D);
+            h_rB = (short *)malloc(size);
+            h_rG = (short *)malloc(size);
+            h_rR = (short *)malloc(size);
+
+            err = cudaMalloc((void **) &d_B, size);
+
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to allocate device d_B (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
+            err = cudaMalloc((void **) &d_G, size);
+
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to allocate device d_G (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
+            err = cudaMalloc((void **) &d_R, size);
+
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to allocate device d_R (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
+            err = cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice);
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to copy B from host to device (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
+            err = cudaMemcpy(d_G, G, size, cudaMemcpyHostToDevice);
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to copy G from host to device (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
+            err = cudaMemcpy(d_R, R, size, cudaMemcpyHostToDevice);
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to copy R from host to device (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
+            blurImage<<<1, 1>>>(d_B, d_G, d_R, img.step, r.width, r.height, r.x, r.y, numThreads, fullMatrixSize, matrixSize1D);
         }
     }
 }
