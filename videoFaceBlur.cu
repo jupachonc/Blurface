@@ -109,6 +109,10 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     // Detect faces of different sizes using cascade classifier
     cascade.detectMultiScale(gray, faces);
 
+    Mat chanels[3];
+
+    split(img, chanels);
+
     // Blur detected faces
     for (size_t i = 0; i < faces.size(); i++)
     {
@@ -116,7 +120,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
         {
             
 
-            cout << img[0].data << endl;
+            cout << chanels[0].data << endl;
 
             //blurImage<<<1, 1>>>(img, r, fullMatrixSize, matrixSize1D);
         }
