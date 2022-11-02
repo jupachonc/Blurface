@@ -153,6 +153,13 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 exit(EXIT_FAILURE);
             }
 
+            err = cudaMemcpy(d_rMatrix, h_Matrix, size, cudaMemcpyHostToDevice);
+            if (err != cudaSuccess)
+            {
+                fprintf(stderr, "Failed to copy Matrix from host to device (error code %s)!\n", cudaGetErrorString(err));
+                exit(EXIT_FAILURE);
+            }
+
 
             int nBlocks = 80;
             int nThreads = 256;
