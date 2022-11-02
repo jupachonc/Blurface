@@ -161,8 +161,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = 64;
-            int nThreads = 64;
+            int nBlocks = 32;
+            int nThreads = 32;
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
