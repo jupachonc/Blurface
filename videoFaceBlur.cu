@@ -25,6 +25,7 @@ __global__ void blurImage(short *Matrix, short *rMatrix,
 int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadId = blockDim.x * blockIdx.x + threadIdx.x;
+    printf("BlurImage kernel");
 
     int partition = width / numThreads;
     int start_x = threadId * partition;
