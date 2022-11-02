@@ -112,7 +112,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
     {
         Rect r = faces[i];
         {
-            int size = sizeOf(B.data);
+            int size = sizeof(B.data);
 
             short *d_B, *d_G, *d_R;
             short *d_rB, *d_rG, *d_rR;
