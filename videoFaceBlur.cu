@@ -171,7 +171,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
         exit(EXIT_FAILURE);
     }
 
-    img.data = *h_rMatrix;
+    img.data = (uchar *)h_rMatrix;
 
         
         }
