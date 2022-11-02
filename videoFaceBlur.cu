@@ -24,19 +24,30 @@ using namespace std;
 __global__ void blurImage(uchar *Matrix, uchar *rMatrix,
 int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
     
-    int threadId = blockDim.x * blockIdx.x + threadIdx.x;
+    int threadIdX = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int partition = (width * height) / numThreads;
+    int threadIdY = blockDim.y * blockIdx.y + threadIdx.y;
+
+    int partitionX = width / numThreads;
+    int partitionY = height / numThreads;
+    //printf("Device width %d \n", width);
+    int start_x = threadIdX * partitionX;
+    int start_y = threadIdY * partitionY;
+
+    int end_x = ((threadIdX + 1) * partitionX) - 1;
+    int end_y = ((threadIdY + 1) * partitionY) - 1;
+
     
-    int start_x = threadId * partition;
 
-    int end_x = ((threadId + 1) * partition) - 1;
+    int max_x = initX + (end_x < width ? end_x : width);
+    int max_y = initY + (end_y < height ? end_y : height);
 
-    for (int j = (initX * initY) + start_x; j <= end_x; j += fullMatrixSize)
+    for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
 
-        int x = (int) j / matrixSize1D;
-        int y = (int) (j % matrixSize1D);
+        for (int y = initY + start_y; y <= max_y; y += matrixSize1D)
+        {
+
             
             int new_pixels[3] = {0, 0, 0};
             // Get the positions of all pixels in the group
