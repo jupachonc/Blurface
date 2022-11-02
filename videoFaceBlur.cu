@@ -175,8 +175,10 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
                 fprintf(stderr, "Failed to copy R from host to device (error code %s)!\n", cudaGetErrorString(err));
                 exit(EXIT_FAILURE);
             }
+            int nBlocks = 80;
+            int nThreads = 256;
 
-            blurImage<<<1, 16>>>(d_B, d_G, d_R, img.step, r.width, r.height, r.x, r.y, numThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<nBlocks, nThreads>>>(d_B, d_G, d_R, img.step, r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
 
             cudaFree(d_B);
             cudaFree(d_G);
