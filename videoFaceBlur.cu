@@ -165,8 +165,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = r.width/matrixSize1D;
-            int nThreads = r.height/matrixSize1D;
+            int nBlocks = r.width/matrixSize1D -1;
+            int nThreads = r.height/matrixSize1D -1;
 
             cout << nBlocks << endl;
             cout << nThreads << endl;
