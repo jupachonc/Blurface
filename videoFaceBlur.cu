@@ -247,6 +247,8 @@ int main(int argc, char *argv[]){
         video.write(frame);
 
         i++;
+
+        cout << i <<endl;
     }
 
     cap.release();
