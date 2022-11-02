@@ -22,7 +22,7 @@ using namespace cv;
 using namespace std;
 
 __global__ void blurImage(uchar *Matrix, uchar *rMatrix,
-int step, int width, int height, int initX, int initY, int numThreads, int fullMatrixSize, int matrixSize1D){
+int step, int width, int height, int initX, int initY, int numBlocks, int numThreads, int fullMatrixSize, int matrixSize1D){
     
     int threadIdX = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -174,7 +174,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             int nBlocks = 6;
             int nThreads = 2;
 
-            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks * nThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
             cudaDeviceSynchronize();
 
