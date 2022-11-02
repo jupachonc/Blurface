@@ -55,6 +55,8 @@ int step, int width, int height, int initX, int initY, int numThreads, int fullM
                 new_pixels[1] += Matrix[(3 * step * row) + (3 * col) + 1];
                 new_pixels[2] += Matrix[(3 * step * row) + (3 * col) + 2];
 
+                printf("%hu", Matrix[(3 * step * row) + (3 * col) + 0]);
+
             }
 
             new_pixels[0] /= fullMatrixSize;
