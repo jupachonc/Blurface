@@ -23,13 +23,11 @@ using namespace std;
 
 __global__ void blurImage(uchar *Matrix, uchar *rMatrix,
 int step, int width, int height, int initX, int initY, int numBlocks, int numThreads, int fullMatrixSize, int matrixSize1D){
-    
-    int threadIdX = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int threadIdY = blockDim.y * blockIdx.y + threadIdx.y;
+    int partitionX = width / numBlocks;
+    int partitionY = height / numThreads;
 
-    int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : width / numBlocks;
-    int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : height / numThreads;
+    //printf("X: %d\n Y: %d\n", partitionX, partitionY);
 
     int start_x = blockIdx.x * partitionX;
     int start_y = threadIdx.x * partitionY;
@@ -41,6 +39,8 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
 
     int max_x = initX + (end_x < width ? end_x : width);
     int max_y = initY + (end_y < height ? end_y : height);
+
+    printf("%d\n", blockDim.x * blockIdx.x + threadIdx.x);
 
     for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
@@ -80,7 +80,7 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
                 rMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
 
-            printf("inside kernel\n");
+            //printf("inside kernel\n");
 
         
             
@@ -163,8 +163,11 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = 32;
-            int nThreads = 32;
+            int nBlocks = r.width/matrixSize1D;
+            int nThreads = r.height/matrixSize1D;
+
+            cout << nBlocks << endl;
+            cout << nThreads << endl;
 
             blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
 
@@ -183,8 +186,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             cudaFree(d_Matrix);
             cudaFree(d_rMatrix);
-            free(h_Matrix);
-            free(h_rMatrix);
+            //free(h_Matrix);
+            //free(h_rMatrix);
 
         
         }
