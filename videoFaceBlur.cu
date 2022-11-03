@@ -291,6 +291,7 @@ int main(int argc, char *argv[]){
     printf("\n-----------------------------------------\n");
     printf("Source video: %s\n", loadPath);
     printf("Output video: %s\n", savePath);
+    printf("Blocks: %d\n", numBlocks);
     printf("Threads: %d\n", numThreads);
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     printf("\n-----------------------------------------\n");
