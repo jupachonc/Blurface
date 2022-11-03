@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+project( EfectoImagen )
+enable_language(CUDA)
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories( ${CUDA_INCLUDE_DIRS} )
+add_executable( EfectoImagen videoFaceBlur.cu )
+target_link_libraries( EfectoImagen ${OpenCV_LIBS} ${CUDA_LIBS})
