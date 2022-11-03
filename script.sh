@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "------------------------------------------------"
-echo "Computación paralela y distribuida - práctica 1"
+echo "Computación paralela y distribuida - práctica 3"
 echo "------------------------------------------------"
 echo "Compilando el programa ..."
 #Compilar el programa
