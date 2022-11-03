@@ -4,16 +4,16 @@
 #include <opencv2/imgproc/imgproc.hpp> // For dealing with images
 #include <opencv2/objdetect/objdetect.hpp>
 #include <iostream>
-#include "omp.h"
 #include <cmath>
 #include <sys/time.h>
 
-#define R_ARGS 3
+#define R_ARGS 4
 
 // Matrix for effect
 int matrixSize1D  = 15;
 int fullMatrixSize = 15 * 15;
 
+int numBlocks = 1;
 int numThreads = 1; // Number of threads to use
 
 // Namespace for OpenCV
@@ -24,10 +24,8 @@ using namespace std;
 __global__ void blurImage(uchar *Matrix, uchar *rMatrix,
 int step, int width, int height, int initX, int initY, int numBlocks, int numThreads, int fullMatrixSize, int matrixSize1D){
 
-    int partitionX = width / numBlocks;
-    int partitionY = height / numThreads;
-
-    //printf("X: %d\n Y: %d\n", partitionX, partitionY);
+    int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : (width / numBlocks);
+    int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : (height / numThreads);
 
     int start_x = blockIdx.x * partitionX;
     int start_y = threadIdx.x * partitionY;
@@ -36,11 +34,9 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
     int end_y = ((threadIdx.x + 1) * partitionY) - 1;
 
     
-
     int max_x = initX + (end_x < width ? end_x : width);
     int max_y = initY + (end_y < height ? end_y : height);
 
-    printf("%d\n", blockDim.x * blockIdx.x + threadIdx.x);
 
     for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
     {
@@ -48,9 +44,10 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
         for (int y = initY + start_y; y <= max_y; y += matrixSize1D)
         {
 
-            
+            // Create new pixels
             int new_pixels[3] = {0, 0, 0};
-            // Get the positions of all pixels in the group
+
+            // Read matrix values
             for (int i = 0; i < fullMatrixSize; i++)
             {
                 int col = x + (i % matrixSize1D);
@@ -60,10 +57,9 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
                 new_pixels[1] += Matrix[(3 * step * row) + (3 * col) + 1];
                 new_pixels[2] += Matrix[(3 * step * row) + (3 * col) + 2];
 
-                //printf("%hu\n", Matrix[(3 * step * row) + (3 * col) + 0]);
-
             }
             
+            // Calcule final pixel values
 
             new_pixels[0] /= fullMatrixSize;
             new_pixels[1] /= fullMatrixSize;
@@ -79,11 +75,7 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
                 rMatrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
                 rMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
-
-            //printf("inside kernel\n");
-
-        
-            
+         
         } 
     }
 
@@ -163,13 +155,13 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             }
 
 
-            int nBlocks = r.width/matrixSize1D;
-            int nThreads = r.height/matrixSize1D;
+            //int nBlocks = r.width/matrixSize1D;
+            //int nThreads = r.height/matrixSize1D;
 
-            cout << nBlocks << endl;
-            cout << nThreads << endl;
+            //cout << nBlocks << endl;
+            //cout << nThreads << endl;
 
-            blurImage<<<nBlocks, nThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, nBlocks, nThreads, fullMatrixSize, matrixSize1D);
+            blurImage<<<numBlocks, numThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, numBlocks, numThreads, fullMatrixSize, matrixSize1D);
 
             cudaDeviceSynchronize();
 
@@ -212,10 +204,11 @@ int main(int argc, char *argv[]){
     // Read args
     loadPath = *(argv + 1);
     savePath = *(argv + 2);
-    numThreads = atoi(*(argv + 3));
+    numBlocks = atoi(*(argv + 3));
+    numThreads = atoi(*(argv + 4));
 
     // Verify number of threads
-    if (numThreads < 0)
+    if (numThreads <= 0 || numBlocks <= 0)
     {
         printf("Invalid threads number \n");
         exit(EXIT_FAILURE);
@@ -294,14 +287,14 @@ int main(int argc, char *argv[]){
 
     // Calculate time
     timersub(&tval_after, &tval_before, &tval_result);
-/*
+
     printf("\n-----------------------------------------\n");
     printf("Source video: %s\n", loadPath);
     printf("Output video: %s\n", savePath);
     printf("Threads: %d\n", numThreads);
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     printf("\n-----------------------------------------\n");
-*/
-        return 0;
+
+    return 0;
 }
 
