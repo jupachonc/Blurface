@@ -7,6 +7,8 @@
 #include "omp.h"
 #include <cmath>
 #include <sys/time.h>
+#include <mpi.h>
+
 
 #define R_ARGS 3
 
@@ -95,6 +97,19 @@ int main(int argc, char *argv[])
     //  CV_CAP_PROP_POS_MSEC : Current Video capture timestamp.
     //  CV_CAP_PROP_POS_FRAMES : Index of the next frame.
 
+    /*Utilizar openMPI*/
+    int n, processId, numProcs, I, rc;
+    double maxtime = 0;
+
+    MPI_Init(&argc, &argv);
+
+    double mytime = 0;
+    
+
+    ////////////////////////////////////////////////////
+
+    double start = MPI_Wtime();
+
     int i = 0;
     while (i < frame_count)
     {
@@ -117,6 +132,8 @@ int main(int argc, char *argv[])
         i++;
     }
 
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
+
     cap.release();
     video.release();
 
@@ -132,8 +149,10 @@ int main(int argc, char *argv[])
     printf("Threads: %d\n", numThreads);
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     printf("\n-----------------------------------------\n");
+   
+    MPI_Finalize();
 
-        return 0;
+    return 0;
 }
 
 void detectAndBlur(Mat &img, CascadeClassifier &cascade)
