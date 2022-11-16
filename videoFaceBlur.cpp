@@ -123,14 +123,20 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             //cout << img.channels() << endl;
 
+            Mat face = img(r).clone();
+
+            int sizeFace = face.total() * img.elemSize();
+
+            //img(r).data = face.data;
+
             uchar *Matrix;
             uchar *rMatrix;
 
-            Matrix = (uchar *)malloc(size);
+            Matrix = (uchar *)malloc(sizeFace);
 
-            rMatrix= (uchar *)malloc(size);
+            rMatrix= (uchar *)malloc(sizeFace);
 
-            Matrix = (uchar *) img.data;
+            Matrix = (uchar *) face.data;
 
 
             //int nBlocks = r.width/matrixSize1D;
@@ -139,10 +145,12 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             //cout << nBlocks << endl;
             //cout << nThreads << endl;
 
-            blurImage(Matrix, rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, img.cols);
+            //blurImage(Matrix, rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, img.cols);
 
 
-            img.data = rMatrix;
+            face.data = Matrix;
+
+            //face.copyTo(img(r));
 
             //free(h_Matrix);
             //free(h_rMatrix);
@@ -244,7 +252,7 @@ int main(int argc, char *argv[]){
 
         i++;
 
-        //cout << i <<endl;
+        cout << i <<endl;
     }
 
     cap.release();
