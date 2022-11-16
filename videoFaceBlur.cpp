@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 #include <sys/time.h>
+#include <mpi.h>
 
 #define R_ARGS 4
 
@@ -21,27 +22,32 @@ using namespace cv;
 
 using namespace std;
 
-__global__ void blurImage(uchar *Matrix, uchar *rMatrix,
-int step, int width, int height, int initX, int initY, int numBlocks, int numThreads, int fullMatrixSize, int matrixSize1D){
-
-    int partitionX = (width / numBlocks) < matrixSize1D ? matrixSize1D : (width / numBlocks);
-    int partitionY = (height / numThreads) < matrixSize1D ? matrixSize1D : (height / numThreads);
-
-    int start_x = blockIdx.x * partitionX;
-    int start_y = threadIdx.x * partitionY;
-
-    int end_x = ((blockIdx.x + 1) * partitionX) - 1;
-    int end_y = ((threadIdx.x + 1) * partitionY) - 1;
-
+void blurImage(uchar *Matrix, uchar *rMatrix,
+int step, int width, int height, int initX, int initY, int cols){
     
-    int max_x = initX + (end_x < width ? end_x : width);
-    int max_y = initY + (end_y < height ? end_y : height);
+    int n, processId, numProcs, I, rc;
 
+    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &processId);
 
-    for (int x = initX + start_x; x <= max_x; x += matrixSize1D)
+    int partition = (int)height / numProcs;
+    int start_y = (int)processId * partition;
+
+    int end_y = ((processId + 1) * partition) - 1;
+
+    int max_x = initX + width;
+    int max_y = initY + height;
+
+    int end_Mat = (3 * step * (max_y + matrixSize1D -1)) + (3*cols) + 2;
+
+    int start_Mat = 3 * step * initY;
+
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
+
+    for (int x = initX; x <= max_x; x += matrixSize1D)
     {
 
-        for (int y = initY + start_y; y <= max_y; y += matrixSize1D)
+        for (int y = initY+start_y; y <= max_y; y += matrixSize1D)
         {
 
             // Create new pixels
@@ -71,13 +77,20 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
-                rMatrix[(3 * step * row) + (3 * col) + 0] = (uchar) new_pixels[0];
-                rMatrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
-                rMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
+                Matrix[(3 * step * row) + (3 * col) + 0] = (uchar) new_pixels[0];
+                Matrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
+                Matrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
          
         } 
     }
+
+    uchar *rpMatrix;
+    rpMatrix = (uchar *)malloc(end_Mat-start_Mat);
+    memcpy(rpMatrix, &Matrix[start_Mat], (end_Mat-start_Mat));
+
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
+    MPI_Gather(rpMatrix, (end_Mat - start_Mat), MPI_UNSIGNED_CHAR, rMatrix, (end_Mat - start_Mat), MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 
 
 
@@ -85,7 +98,6 @@ int step, int width, int height, int initX, int initY, int numBlocks, int numThr
 
 
 void detectAndBlur(Mat &img, CascadeClassifier &cascade){
-    cudaError_t err = cudaSuccess;
     // Vector to save detected faces coordinates
     vector<Rect> faces;
 
@@ -111,48 +123,14 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             //cout << img.channels() << endl;
 
-            uchar *d_Matrix;
-            uchar *h_Matrix;
-            uchar *d_rMatrix;
-            uchar *h_rMatrix;
+            uchar *Matrix;
+            uchar *rMatrix;
 
-            h_Matrix = (uchar *)malloc(size);
+            Matrix = (uchar *)malloc(size);
 
-            h_rMatrix= (uchar *)malloc(size);
+            rMatrix= (uchar *)malloc(size);
 
-            h_Matrix = (uchar *) img.data;
-
-            err = cudaMalloc((void **) &d_Matrix, size);
-
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to allocate device d_Matrix (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-
-            err = cudaMemcpy(d_Matrix, h_Matrix, size, cudaMemcpyHostToDevice);
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to copy Matrix from host to device (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-            err = cudaMalloc((void **) &d_rMatrix, size);
-
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to allocate device rMatrix (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-
-            err = cudaMemcpy(d_rMatrix, h_Matrix, size, cudaMemcpyHostToDevice);
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to copy Matrix from host to device (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
+            Matrix = (uchar *) img.data;
 
 
             //int nBlocks = r.width/matrixSize1D;
@@ -161,23 +139,11 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             //cout << nBlocks << endl;
             //cout << nThreads << endl;
 
-            blurImage<<<numBlocks, numThreads>>>(d_Matrix, d_rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, numBlocks, numThreads, fullMatrixSize, matrixSize1D);
+            blurImage(Matrix, rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, img.cols);
 
-            cudaDeviceSynchronize();
 
-            
+            img.data = rMatrix;
 
-            err = cudaMemcpy(h_rMatrix, d_rMatrix, size, cudaMemcpyDeviceToHost);
-            if (err != cudaSuccess)
-            {
-                fprintf(stderr, "Failed to copy resultMatrix from device to host (error code %s)!\n", cudaGetErrorString(err));
-                exit(EXIT_FAILURE);
-            }
-
-            img.data = h_rMatrix;
-
-            cudaFree(d_Matrix);
-            cudaFree(d_rMatrix);
             //free(h_Matrix);
             //free(h_rMatrix);
 
@@ -188,6 +154,8 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
 
 int main(int argc, char *argv[]){
+
+    MPI_Init(NULL, NULL);
     // Time values
     struct timeval tval_before, tval_after, tval_result;
 
@@ -295,6 +263,8 @@ int main(int argc, char *argv[]){
     printf("Threads: %d\n", numThreads);
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     printf("\n-----------------------------------------\n");
+    
+    MPI_Finalize();
 
     return 0;
 }
