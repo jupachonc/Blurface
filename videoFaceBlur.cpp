@@ -23,31 +23,42 @@ using namespace cv;
 using namespace std;
 
 void blurImage(uchar *Matrix, uchar *rMatrix,
-int step, int width, int height, int initX, int initY, int cols){
+int step, int width, int height, int initX, int initY, int size){
     
     int n, processId, numProcs, I, rc;
 
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
 
+    int mPartition = (int) size/numProcs;
+
+    cout << mPartition <<endl;
+
+    uchar *rpMatrix;
+    rpMatrix = (uchar *)malloc(mPartition * sizeof(uchar));
+
+
+
+    MPI_Scatter(Matrix, mPartition, MPI_UNSIGNED_CHAR, rpMatrix, mPartition, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
     int partition = (int)height / numProcs;
     int start_y = (int)processId * partition;
 
     int end_y = ((processId + 1) * partition) - 1;
 
-    int max_x = initX + width;
-    int max_y = initY + height;
+    int max_x = width / numProcs;
+    int max_y = height / numProcs;
 
-    int end_Mat = (3 * step * (max_y + matrixSize1D -1)) + (3*cols) + 2;
+    //int end_Mat = (3 * step * (max_y + matrixSize1D -1)) + (3*cols) + 2;
 
-    int start_Mat = 3 * step * initY;
+    //int start_Mat = 3 * step * initY;
 
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
-    for (int x = initX; x <= max_x; x += matrixSize1D)
+    for (int x = 0; x < max_x; x += matrixSize1D)
     {
 
-        for (int y = initY+start_y; y <= max_y; y += matrixSize1D)
+        for (int y = 0; y < max_y; y += matrixSize1D)
         {
 
             // Create new pixels
@@ -59,9 +70,9 @@ int step, int width, int height, int initX, int initY, int cols){
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
                 
-                new_pixels[0] += Matrix[(3 * step * row) + (3 * col) + 0];
-                new_pixels[1] += Matrix[(3 * step * row) + (3 * col) + 1];
-                new_pixels[2] += Matrix[(3 * step * row) + (3 * col) + 2];
+                new_pixels[0] += rpMatrix[(3 * step * row) + (3 * col) + 0];
+                new_pixels[1] += rpMatrix[(3 * step * row) + (3 * col) + 1];
+                new_pixels[2] += rpMatrix[(3 * step * row) + (3 * col) + 2];
 
             }
             
@@ -71,26 +82,27 @@ int step, int width, int height, int initX, int initY, int cols){
             new_pixels[1] /= fullMatrixSize;
             new_pixels[2] /= fullMatrixSize;
 
+
             // Replace the value of all pixels in the group for the previous one calculated
             for (int i = 0; i < fullMatrixSize; i++)
             {
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
-                Matrix[(3 * step * row) + (3 * col) + 0] = (uchar) new_pixels[0];
-                Matrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
-                Matrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
+                rpMatrix[(3 * step * row) + (3 * col) + 0] = (uchar) new_pixels[0];
+                rpMatrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
+                rpMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
             }
          
         } 
     }
 
-    uchar *rpMatrix;
-    rpMatrix = (uchar *)malloc(end_Mat-start_Mat);
-    memcpy(rpMatrix, &Matrix[start_Mat], (end_Mat-start_Mat));
+    //uchar *rpMatrix;
+    //rpMatrix = (uchar *)malloc(end_Mat-start_Mat);
+    //memcpy(rpMatrix, &Matrix[start_Mat], (end_Mat-start_Mat));
 
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
-    MPI_Gather(rpMatrix, (end_Mat - start_Mat), MPI_UNSIGNED_CHAR, rMatrix, (end_Mat - start_Mat), MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Gather(rpMatrix, mPartition, MPI_UNSIGNED_CHAR, rMatrix, mPartition, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 
 
 
@@ -125,7 +137,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             Mat face = img(r).clone();
 
-            int sizeFace = face.total() * img.elemSize();
+            int sizeFace = face.total() * img.elemSize() * sizeof(uchar);
 
             //img(r).data = face.data;
 
@@ -145,15 +157,15 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
             //cout << nBlocks << endl;
             //cout << nThreads << endl;
 
-            //blurImage(Matrix, rMatrix, (img.step/img.elemSize()), r.width, r.height, r.x, r.y, img.cols);
+            blurImage(Matrix, rMatrix, (face.step/face.elemSize()), r.width, r.height, r.x, r.y, sizeFace);
 
 
-            face.data = Matrix;
+            face.data = rMatrix;
 
-            //face.copyTo(img(r));
+            face.copyTo(img(r));
 
-            //free(h_Matrix);
-            //free(h_rMatrix);
+            //free(Matrix);
+            //free(rMatrix);
 
         
         }
@@ -163,7 +175,6 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
 int main(int argc, char *argv[]){
 
-    MPI_Init(NULL, NULL);
     // Time values
     struct timeval tval_before, tval_after, tval_result;
 
@@ -231,6 +242,12 @@ int main(int argc, char *argv[]){
     //  CV_CAP_PROP_POS_MSEC : Current Video capture timestamp.
     //  CV_CAP_PROP_POS_FRAMES : Index of the next frame.
 
+    MPI_Init(NULL, NULL);
+    int processId;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &processId);
+
+
     int i = 0;
     while (i < frame_count)
     {
@@ -247,14 +264,17 @@ int main(int argc, char *argv[]){
         // Process frame to blur face
         detectAndBlur(frame, cascade);
 
+        if(processId == 0){
         // Write proccesed frame in video output
         video.write(frame);
 
         i++;
 
         cout << i <<endl;
+        }
     }
 
+if(processId == 0){
     cap.release();
     video.release();
 
@@ -272,6 +292,9 @@ int main(int argc, char *argv[]){
     printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
     printf("\n-----------------------------------------\n");
     
+
+}
+
     MPI_Finalize();
 
     return 0;
