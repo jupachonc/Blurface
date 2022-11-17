@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <mpi.h>
 
-#define R_ARGS 4
+#define R_ARGS 2
 
 // Matrix for effect
 int matrixSize1D  = 15;
@@ -35,7 +35,7 @@ int step, int width, int height, int initX, int initY, int size){
     cout << mPartition <<endl;
 
     uchar *rpMatrix;
-    rpMatrix = (uchar *)malloc(mPartition * sizeof(uchar));
+    rpMatrix = (uchar *)calloc(mPartition,1);
 
 
 
@@ -46,7 +46,7 @@ int step, int width, int height, int initX, int initY, int size){
 
     int end_y = ((processId + 1) * partition) - 1;
 
-    int max_x = width / numProcs;
+    int max_x = width;
     int max_y = height / numProcs;
 
     //int end_Mat = (3 * step * (max_y + matrixSize1D -1)) + (3*cols) + 2;
@@ -69,10 +69,13 @@ int step, int width, int height, int initX, int initY, int size){
             {
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
+
+                if(((3 * step * row) + (3 * col) + 2) < mPartition){
                 
                 new_pixels[0] += rpMatrix[(3 * step * row) + (3 * col) + 0];
                 new_pixels[1] += rpMatrix[(3 * step * row) + (3 * col) + 1];
                 new_pixels[2] += rpMatrix[(3 * step * row) + (3 * col) + 2];
+                }
 
             }
             
@@ -89,9 +92,12 @@ int step, int width, int height, int initX, int initY, int size){
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
+                if(((3 * step * row) + (3 * col) + 2) < mPartition){
+
                 rpMatrix[(3 * step * row) + (3 * col) + 0] = (uchar) new_pixels[0];
                 rpMatrix[(3 * step * row) + (3 * col) + 1] = (uchar) new_pixels[1];
                 rpMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
+                }
             }
          
         } 
@@ -135,9 +141,13 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             //cout << img.channels() << endl;
 
-            Mat face = img(r).clone();
+            Mat imgR = img(r);
 
-            int sizeFace = face.total() * img.elemSize() * sizeof(uchar);
+            Mat face = imgR.clone();
+
+            //cout << face.isContinuous() << endl;
+
+            int sizeFace = face.total() * img.elemSize();
 
             //img(r).data = face.data;
 
@@ -150,20 +160,16 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             Matrix = (uchar *) face.data;
 
-
-            //int nBlocks = r.width/matrixSize1D;
-            //int nThreads = r.height/matrixSize1D;
-
-            //cout << nBlocks << endl;
-            //cout << nThreads << endl;
-
             blurImage(Matrix, rMatrix, (face.step/face.elemSize()), r.width, r.height, r.x, r.y, sizeFace);
 
 
             face.data = rMatrix;
 
+            //cout << face.isContinuous() << endl;
+
             face.copyTo(img(r));
 
+            //cout <<img.isContinuous()<< endl;
             //free(Matrix);
             //free(rMatrix);
 
@@ -191,15 +197,7 @@ int main(int argc, char *argv[]){
     // Read args
     loadPath = *(argv + 1);
     savePath = *(argv + 2);
-    numBlocks = atoi(*(argv + 3));
-    numThreads = atoi(*(argv + 4));
 
-    // Verify number of threads
-    if (numThreads <= 0 || numBlocks <= 0)
-    {
-        printf("Invalid threads number \n");
-        exit(EXIT_FAILURE);
-    }
 
     // Start time
     gettimeofday(&tval_before, NULL);
