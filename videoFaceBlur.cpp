@@ -7,6 +7,7 @@
 #include <cmath>
 #include <sys/time.h>
 #include <mpi.h>
+#include <unistd.h>
 
 #define R_ARGS 2
 
@@ -30,16 +31,58 @@ int step, int width, int height, int initX, int initY, int size){
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
 
-    int mPartition = (int) size/numProcs;
+    int *sendcounts = new int[numProcs];
+    int *displs = new int[numProcs];
 
-    cout << mPartition <<endl;
+    int part = ceil(size/numProcs);
+
+    for(int i=0; i < numProcs-1; i++){
+        sendcounts[i] = part;
+    }
+
+    sendcounts[numProcs-1] = size - ((numProcs-1)* part);
+    displs[0] = 0;
+
+    for(int i=1; i < numProcs; i++){
+        displs[i] = displs[i-1] + sendcounts[i-1];
+    }
+
+    if(processId == 0){
+        for(int i=0; i < numProcs; i++){
+            cout<< i<< " Rank has size of " <<sendcounts[i] << endl;
+            cout<< i<< " Rank has despl of " <<displs[i] << endl;
+            
+        }
+        cout << "Total Size " << size << endl;
+    }
+
+
+    int mPartition = sendcounts[processId];
+
+    //MPI_Scatter(sendcounts, sizeof(int), MPI_INT, mPartition, sizeof(int), MPI_INT, 0, MPI_COMM_WORLD);
+    //MPI_Gather(rpMatrix, mPartition, MPI_UNSIGNED_CHAR, rMatrix, mPartition, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
 
     uchar *rpMatrix;
-    rpMatrix = (uchar *)calloc(mPartition,1);
+    rpMatrix = (uchar *)malloc(mPartition);
+
+    /*
+        Define sendcounts = number of elements to send to each processor
+        Define displs = Relativa desdplacement form the principal buffer
+        Define mPartition as sendCounts data for processor
+
+        PLEASE WORKS :D
+    
+    */
+
+    //cout << processId<< " Rank Size " << mPartition << endl;
+
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
 
+    MPI_Scatterv(Matrix, sendcounts, displs, MPI_UNSIGNED_CHAR, rpMatrix, mPartition, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
-    MPI_Scatter(Matrix, mPartition, MPI_UNSIGNED_CHAR, rpMatrix, mPartition, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 
     int partition = (int)height / numProcs;
     int start_y = (int)processId * partition;
@@ -55,11 +98,14 @@ int step, int width, int height, int initX, int initY, int size){
 
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
-    for (int x = 0; x < max_x; x += matrixSize1D)
+    for (int y = 0; y < max_y; y += matrixSize1D)
     {
 
-        for (int y = 0; y < max_y; y += matrixSize1D)
+        for (int x = 0; x < max_x; x += matrixSize1D)
         {
+            bool cond = false;
+
+            int matrixSizeInner = fullMatrixSize;
 
             // Create new pixels
             int new_pixels[3] = {0, 0, 0};
@@ -75,15 +121,18 @@ int step, int width, int height, int initX, int initY, int size){
                 new_pixels[0] += rpMatrix[(3 * step * row) + (3 * col) + 0];
                 new_pixels[1] += rpMatrix[(3 * step * row) + (3 * col) + 1];
                 new_pixels[2] += rpMatrix[(3 * step * row) + (3 * col) + 2];
+                }else{
+                    matrixSizeInner = fullMatrixSize - (col*row);
+                    //cout << new_pixels[0] << " Pixeeeeel " <<matrixSizeInner << endl;
                 }
 
             }
             
             // Calcule final pixel values
 
-            new_pixels[0] /= fullMatrixSize;
-            new_pixels[1] /= fullMatrixSize;
-            new_pixels[2] /= fullMatrixSize;
+            new_pixels[0] /= matrixSizeInner;
+            new_pixels[1] /= matrixSizeInner;
+            new_pixels[2] /= matrixSizeInner;
 
 
             // Replace the value of all pixels in the group for the previous one calculated
@@ -99,8 +148,10 @@ int step, int width, int height, int initX, int initY, int size){
                 rpMatrix[(3 * step * row) + (3 * col) + 2] = (uchar) new_pixels[2];
                 }
             }
+
+
          
-        } 
+        }
     }
 
     //uchar *rpMatrix;
@@ -108,7 +159,9 @@ int step, int width, int height, int initX, int initY, int size){
     //memcpy(rpMatrix, &Matrix[start_Mat], (end_Mat-start_Mat));
 
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
-    MPI_Gather(rpMatrix, mPartition, MPI_UNSIGNED_CHAR, rMatrix, mPartition, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Gatherv(rpMatrix, mPartition, MPI_UNSIGNED_CHAR, rMatrix, sendcounts, displs, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
+
 
 
 
@@ -162,6 +215,7 @@ void detectAndBlur(Mat &img, CascadeClassifier &cascade){
 
             blurImage(Matrix, rMatrix, (face.step/face.elemSize()), r.width, r.height, r.x, r.y, sizeFace);
 
+            MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
             face.data = rMatrix;
 
@@ -240,7 +294,9 @@ int main(int argc, char *argv[]){
     //  CV_CAP_PROP_POS_MSEC : Current Video capture timestamp.
     //  CV_CAP_PROP_POS_FRAMES : Index of the next frame.
 
+    int x = 0;
     MPI_Init(NULL, NULL);
+
     int processId;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
@@ -268,7 +324,9 @@ int main(int argc, char *argv[]){
 
         i++;
 
-        cout << i <<endl;
+        cout << "Frame " << i <<endl;
+        imshow("W",frame);
+        int k = waitKey(0); // Wait for a keystroke in the window
         }
     }
 
