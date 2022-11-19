@@ -33,15 +33,6 @@ void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, i
 
     MPI_Bcast(Matrix, size, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 
-    /*
-        Define sendcounts = number of elements to send to each processor
-        Define displs = Relativa desdplacement form the principal buffer
-        Define mPartition as sendCounts data for processor
-
-        PLEASE WORKS :D
-
-    */
-
     int start_y = ((height) / numProcs) * processId;
 
     int end_y = (processId < (height) % numProcs) ? start_y + ((height) / numProcs) : start_y + ((height) / numProcs) - 1;
@@ -213,9 +204,10 @@ int main(int argc, char *argv[])
     //  CV_CAP_PROP_POS_FRAMES : Index of the next frame.
     MPI_Init(NULL, NULL);
 
-    int processId;
+    int processId, numProcs;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
+    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
     int i = 0;
     while (i < frame_count)
@@ -252,10 +244,6 @@ int main(int argc, char *argv[])
             detectAndBlur(frame, frameBlurred, cascade);
             // Write proccesed frame in video output
             video.write(frame);
-            //imshow("w", frame);
-            //int k = waitKey(0); // Wait for a keystroke in the window
-
-            cout << i << endl;
         }
 
         i++;
@@ -277,8 +265,7 @@ int main(int argc, char *argv[])
         printf("\n-----------------------------------------\n");
         printf("Source video: %s\n", loadPath);
         printf("Output video: %s\n", savePath);
-        printf("Blocks: %d\n", numBlocks);
-        printf("Threads: %d\n", numThreads);
+        printf("Process: %d\n", numProcs);
         printf("Execution time: %ld.%06ld s \n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
         printf("\n-----------------------------------------\n");
     }
