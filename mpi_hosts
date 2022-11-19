@@ -1,7 +1,7 @@
 # The Hostfile for Open MPI
 
 # The following slave nodes are single processor machines:
-glocluster0
-glocluster1
-glocluster2
-glocluster3
+glocluster0 slots=1
+glocluster1 slots=1
+glocluster2 slots=1
+glocluster3 slots=1
