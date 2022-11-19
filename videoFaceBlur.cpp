@@ -25,28 +25,26 @@ using namespace std;
 
 void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, int size)
 {
-
-    int n, processId, numProcs, I, rc;
+    // Variables for MPI
+    int n, processId, numProcs;
 
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
 
+    // Brodcast image data from root node
     MPI_Bcast(Matrix, size, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 
+    // Calculate iterations for node
     int start_y = ((height) / numProcs) * processId;
-
     int end_y = (processId < (height) % numProcs) ? start_y + ((height) / numProcs) : start_y + ((height) / numProcs) - 1;
-
     int max_x = width;
 
+    // Calculate matriz size for allocation
     int start_Mat = 3 * step * start_y;
-
     int end_Mat = (3 * step * end_y) + (3 * width);
-
     int matSize = end_Mat - start_Mat;
 
-    int local_y = 0;
-
+    // Allocate memory and wait all nodes
     uchar *rpMatrix = new uchar[matSize];
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
@@ -55,9 +53,6 @@ void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, i
 
         for (int x = 0; x < max_x; x += matrixSize1D)
         {
-            bool cond = false;
-
-            int matrixSizeInner = fullMatrixSize;
 
             // Create new pixels
             int new_pixels[3] = {0, 0, 0};
@@ -68,6 +63,7 @@ void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, i
                 int col = x + (i % matrixSize1D);
                 int row = y + (int)(i / matrixSize1D);
 
+                // Get pixels info
                 if (((3 * step * row) + (3 * col) + 2) <= end_Mat)
                 {
 
@@ -79,9 +75,9 @@ void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, i
 
             // Calcule final pixel values
 
-            new_pixels[0] /= matrixSizeInner;
-            new_pixels[1] /= matrixSizeInner;
-            new_pixels[2] /= matrixSizeInner;
+            new_pixels[0] /= fullMatrixSize;
+            new_pixels[1] /= fullMatrixSize;
+            new_pixels[2] /= fullMatrixSize;
 
             // Replace the value of all pixels in the group for the previous one calculated
             for (int i = 0; i < fullMatrixSize; i++)
@@ -89,6 +85,7 @@ void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, i
                 int col = x + (i % matrixSize1D);
                 int row = y - start_y + (int)(i / matrixSize1D);
 
+                // Asign new pixels to img
                 if (((3 * step * row) + (3 * col) + 2) <= matSize)
                 {
                     rpMatrix[(3 * step * row) + (3 * col) + 0] = (uchar)new_pixels[0];
@@ -99,14 +96,12 @@ void blurImage(uchar *Matrix, uchar *rMatrix, int step, int width, int height, i
         }
     }
 
-    // uchar *rpMatrix;
-    // rpMatrix = (uchar *)malloc(end_Mat-start_Mat);
-    // memcpy(rpMatrix, &Matrix[start_Mat], (end_Mat-start_Mat));
-
+    // Wait and collect data from all nodes
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
     MPI_Gather(rpMatrix, matSize, MPI_UNSIGNED_CHAR, rMatrix, matSize, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
 
+    // Free memory of local matrix
     free(rpMatrix);
 };
 
@@ -132,6 +127,7 @@ void detectAndBlur(Mat &img, Mat &imgBlur, CascadeClassifier &cascade)
         Rect r = faces[i];
         {
 
+            // Copy data from blurred img to original
             Mat face = imgBlur(r);
             face.copyTo(img(r));
         }
@@ -158,9 +154,6 @@ int main(int argc, char *argv[])
     loadPath = *(argv + 1);
     savePath = *(argv + 2);
 
-
-
-
     // Start time
     gettimeofday(&tval_before, NULL);
 
@@ -184,7 +177,6 @@ int main(int argc, char *argv[])
     int matrixSize1D = ceil(height * 0.015);
     int fullMatrixSize = matrixSize1D * matrixSize1D;
 
-
     // Create video writer
     VideoWriter video(savePath, VideoWriter::fourcc('m', 'p', '4', 'v'), fps, Size(width, height));
 
@@ -202,13 +194,17 @@ int main(int argc, char *argv[])
     //  Example:
     //  CV_CAP_PROP_POS_MSEC : Current Video capture timestamp.
     //  CV_CAP_PROP_POS_FRAMES : Index of the next frame.
+
+    // Init MPI Process
     MPI_Init(NULL, NULL);
 
+    // Get MPI Variables
     int processId, numProcs;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
+    // Iterate video
     int i = 0;
     while (i < frame_count)
     {
@@ -222,10 +218,13 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
 
+        // clone img to blur
         Mat frameBlurred = frame.clone();
 
+        // Get img size
         int size = frame.total() * frame.elemSize();
 
+        // Define data for apply filter
         uchar *Matrix;
         uchar *rMatrix;
 
@@ -235,9 +234,10 @@ int main(int argc, char *argv[])
 
         blurImage(Matrix, rMatrix, (frame.step / frame.elemSize()), frame.cols, frame.rows, size);
 
+        // Replace filter data in fra,e
         frameBlurred.data = rMatrix;
 
-
+        // Applicate new img to faces
         if (processId == 0)
         {
             // Process frame to blur face
@@ -249,10 +249,11 @@ int main(int argc, char *argv[])
         i++;
     }
 
-        cap.release();
-        video.release();
+    // Release video 
+    cap.release();
+    video.release();
 
-
+    // Calculate time 
     if (processId == 0)
     {
 
@@ -270,6 +271,7 @@ int main(int argc, char *argv[])
         printf("\n-----------------------------------------\n");
     }
 
+    // Finalize MPI
     MPI_Finalize();
 
     return 0;
