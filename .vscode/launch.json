@@ -7,7 +7,7 @@
         {
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
-            "request": "attach",
+            "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
             "MIMode": "gdb",
             "setupCommands": [
