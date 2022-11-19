@@ -7,7 +7,7 @@ echo "Compilando el programa ..."
 mpic++ -o videoFaceBlur videoFaceBlur.cpp -lm `pkg-config --cflags --libs opencv`
 echo "Compilación terminada, realizando pruebas ..."
 echo "------------------------ Procesando videos------------"
-for ((v=1; v<=4; c+=1))
+for ((v=1; v<=4; v+=1))
 do
     printf "------------------------ Pruebas vídeo $V  ------------"
     for ((c=1; c<=4; c+=1))
